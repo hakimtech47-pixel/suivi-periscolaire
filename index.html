@@ -2,147 +2,220 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Suivi Périscolaire</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#2563eb">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans pb-10">
+<body class="bg-slate-100 text-slate-800 font-sans pb-12 select-none">
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 opacity-0 pointer-events-none px-4 py-2 rounded-lg text-sm font-semibold shadow-lg text-white"></div>
 
   <header class="bg-blue-600 text-white p-4 sticky top-0 shadow-md flex justify-between items-center z-10">
-    <h1 class="text-lg font-bold">Suivi Périscolaire</h1>
-    <button onclick="exporterExcel()" class="bg-blue-800 hover:bg-blue-900 text-xs px-3 py-1.5 rounded-lg border border-blue-400 font-medium">
-      Export Excel
+    <div>
+      <h1 class="text-base font-bold leading-tight">Suivi Périscolaire</h1>
+      <p class="text-[11px] text-blue-100" id="currentDateDisplay"></p>
+    </div>
+    <button onclick="exporterExcel()" class="bg-blue-700 hover:bg-blue-800 active:scale-95 text-xs px-3 py-1.5 rounded-lg border border-blue-400 font-medium transition">
+      Export .xlsx
     </button>
   </header>
 
   <main class="max-w-md mx-auto p-4 space-y-4">
 
     <!-- Formulaire de saisie -->
-    <div class="bg-white rounded-xl shadow-sm p-4 border border-slate-200">
-      <h2 class="font-semibold text-slate-700 mb-3 text-base border-b pb-1">Saisie du jour</h2>
-      <form id="periscoForm" class="space-y-3">
+    <div class="bg-white rounded-2xl shadow-sm p-4 border border-slate-200">
+      <h2 class="font-bold text-slate-800 mb-3 text-sm flex items-center justify-between border-b pb-2">
+        <span>Saisie de la journée</span>
+        <button type="button" onclick="initAujourdhui()" class="text-xs text-blue-600 font-medium hover:underline">Aujourd'hui</button>
+      </h2>
+
+      <form id="periscoForm" class="space-y-4">
         
-        <div>
-          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Date</label>
-          <input type="date" id="dateInput" required class="w-full bg-slate-50 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Date</label>
+            <input type="date" id="dateInput" required class="w-full bg-slate-50 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Période</label>
+            <select id="periodeInput" class="w-full bg-slate-50 border rounded-lg p-2 text-sm">
+              <option value="Scolaire">Scolaire</option>
+              <option value="Mercredi">Mercredi</option>
+              <option value="Vacances">Vacances</option>
+            </select>
+          </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Période</label>
-          <select id="periodeInput" class="w-full bg-slate-50 border rounded-lg p-2 text-sm">
-            <option value="Scolaire">Période scolaire</option>
-            <option value="Mercredi">Mercredi</option>
-            <option value="Vacances">Vacances scolaires</option>
-          </select>
-        </div>
-
-        <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg border">
-          <span class="text-sm font-medium">Repas Cantine</span>
-          <input type="checkbox" id="cantineInput" class="w-5 h-5 accent-blue-600">
-        </div>
+        <!-- Cantine scolaire -->
+        <label class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border cursor-pointer active:bg-slate-100">
+          <span class="text-sm font-semibold text-slate-700">Repas cantine scolaire</span>
+          <input type="checkbox" id="cantineInput" class="w-5 h-5 accent-blue-600 rounded">
+        </label>
 
         <!-- Garderie Matin -->
-        <div class="p-2.5 bg-slate-50 rounded-lg border space-y-2">
-          <span class="text-xs font-bold text-slate-500 uppercase block">Garderie Matin</span>
+        <div class="p-3 bg-slate-50 rounded-xl border space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-slate-600 uppercase">Garderie Matin</span>
+            <span id="labelDureeMatin" class="text-xs font-medium text-blue-600"></span>
+          </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="text-[11px] text-slate-400">Arrivée</label>
-              <input type="time" id="matinArrivee" class="w-full bg-white border rounded p-1 text-sm">
+              <div class="flex justify-between text-[11px] text-slate-500 mb-0.5">
+                <span>Arrivée</span>
+                <button type="button" onclick="setHeureActuelle('matinArrivee')" class="text-blue-600 font-bold hover:underline">Maintenant</button>
+              </div>
+              <input type="time" id="matinArrivee" onchange="majDureesDirect()" class="w-full bg-white border rounded-lg p-2 text-sm">
             </div>
             <div>
-              <label class="text-[11px] text-slate-400">Départ</label>
-              <input type="time" id="matinDepart" class="w-full bg-white border rounded p-1 text-sm">
+              <div class="flex justify-between text-[11px] text-slate-500 mb-0.5">
+                <span>Départ</span>
+                <button type="button" onclick="setHeureActuelle('matinDepart')" class="text-blue-600 font-bold hover:underline">Maintenant</button>
+              </div>
+              <input type="time" id="matinDepart" onchange="majDureesDirect()" class="w-full bg-white border rounded-lg p-2 text-sm">
             </div>
           </div>
         </div>
 
         <!-- Garderie Soir -->
-        <div class="p-2.5 bg-slate-50 rounded-lg border space-y-2">
-          <span class="text-xs font-bold text-slate-500 uppercase block">Garderie Soir</span>
+        <div class="p-3 bg-slate-50 rounded-xl border space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-slate-600 uppercase">Garderie Soir</span>
+            <span id="labelDureeSoir" class="text-xs font-medium text-blue-600"></span>
+          </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="text-[11px] text-slate-400">Arrivée</label>
-              <input type="time" id="soirArrivee" class="w-full bg-white border rounded p-1 text-sm">
+              <div class="flex justify-between text-[11px] text-slate-500 mb-0.5">
+                <span>Arrivée</span>
+                <button type="button" onclick="setHeureActuelle('soirArrivee')" class="text-blue-600 font-bold hover:underline">Maintenant</button>
+              </div>
+              <input type="time" id="soirArrivee" onchange="majDureesDirect()" class="w-full bg-white border rounded-lg p-2 text-sm">
             </div>
             <div>
-              <label class="text-[11px] text-slate-400">Départ</label>
-              <input type="time" id="soirDepart" class="w-full bg-white border rounded p-1 text-sm">
+              <div class="flex justify-between text-[11px] text-slate-500 mb-0.5">
+                <span>Départ</span>
+                <button type="button" onclick="setHeureActuelle('soirDepart')" class="text-blue-600 font-bold hover:underline">Maintenant</button>
+              </div>
+              <input type="time" id="soirDepart" onchange="majDureesDirect()" class="w-full bg-white border rounded-lg p-2 text-sm">
             </div>
           </div>
         </div>
 
         <!-- Centre de Loisirs -->
-        <div class="p-2.5 bg-slate-50 rounded-lg border space-y-2">
-          <span class="text-xs font-bold text-slate-500 uppercase block">Centre de Loisirs</span>
-          <select id="centrePresence" class="w-full bg-white border rounded p-1.5 text-sm">
+        <div class="p-3 bg-slate-50 rounded-xl border space-y-2">
+          <span class="text-xs font-bold text-slate-600 uppercase block">Centre de Loisirs</span>
+          <select id="centrePresence" class="w-full bg-white border rounded-lg p-2 text-sm">
             <option value="Aucun">Aucun</option>
             <option value="Journée entière">Journée entière</option>
             <option value="Demi-journée matin">Demi-journée matin</option>
             <option value="Demi-journée après-midi">Demi-journée après-midi</option>
           </select>
-          <div class="flex items-center justify-between pt-1">
-            <span class="text-xs font-medium">Repas au Centre</span>
-            <input type="checkbox" id="centreRepas" class="w-4 h-4 accent-blue-600">
-          </div>
+          <label class="flex items-center justify-between pt-1 cursor-pointer">
+            <span class="text-xs font-medium text-slate-700">Repas pris au centre</span>
+            <input type="checkbox" id="centreRepas" class="w-4 h-4 accent-blue-600 rounded">
+          </label>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Notes</label>
-          <input type="text" id="notesInput" placeholder="Optionnel..." class="w-full bg-slate-50 border rounded-lg p-2 text-sm">
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Notes / Événements</label>
+          <input type="text" id="notesInput" placeholder="Ex : retard bus, mot carnet..." class="w-full bg-slate-50 border rounded-lg p-2 text-sm">
         </div>
 
-        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm shadow">
+        <button type="submit" class="w-full bg-blue-600 active:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm shadow transition active:scale-[0.99]">
           Enregistrer la journée
         </button>
       </form>
     </div>
 
-    <!-- Récapitulatif du mois en cours -->
-    <div class="bg-white rounded-xl shadow-sm p-4 border border-slate-200">
-      <h2 class="font-semibold text-slate-700 mb-2 text-base">Bilan du mois en cours</h2>
-      <div class="grid grid-cols-2 gap-3 text-center">
-        <div class="p-3 bg-blue-50 rounded-lg">
-          <div class="text-xs text-blue-600 font-medium">Repas Cantine</div>
-          <div id="statRepas" class="text-xl font-bold text-blue-900">0</div>
+    <!-- Tableau de bord du mois sélectionné -->
+    <div class="bg-white rounded-2xl shadow-sm p-4 border border-slate-200 space-y-3">
+      <div class="flex justify-between items-center">
+        <h2 class="font-bold text-slate-800 text-sm">Bilan mensuel</h2>
+        <input type="month" id="filtreMois" onchange="actualiserAffichage()" class="bg-slate-50 border rounded-lg p-1 text-xs font-semibold text-slate-700">
+      </div>
+      
+      <div class="grid grid-cols-2 gap-2 text-center">
+        <div class="p-2.5 bg-blue-50 rounded-xl">
+          <div class="text-[11px] text-blue-600 font-semibold">Cantine</div>
+          <div id="statRepas" class="text-lg font-black text-blue-950">0</div>
         </div>
-        <div class="p-3 bg-blue-50 rounded-lg">
-          <div class="text-xs text-blue-600 font-medium">Heures Garderie</div>
-          <div id="statGarderie" class="text-xl font-bold text-blue-900">0h00</div>
+        <div class="p-2.5 bg-blue-50 rounded-xl">
+          <div class="text-[11px] text-blue-600 font-semibold">Garderie</div>
+          <div id="statGarderie" class="text-lg font-black text-blue-950">0h00</div>
         </div>
-        <div class="p-3 bg-slate-50 rounded-lg">
-          <div class="text-xs text-slate-500 font-medium">Jours Centre</div>
-          <div id="statCentre" class="text-xl font-bold text-slate-800">0</div>
+        <div class="p-2.5 bg-slate-50 rounded-xl">
+          <div class="text-[11px] text-slate-500 font-semibold">Centre</div>
+          <div id="statCentre" class="text-lg font-black text-slate-800">0 j</div>
         </div>
-        <div class="p-3 bg-emerald-50 rounded-lg">
-          <div class="text-xs text-emerald-600 font-medium">Coût Estimé</div>
-          <div id="statCout" class="text-xl font-bold text-emerald-800">0,00 €</div>
+        <div class="p-2.5 bg-emerald-50 rounded-xl">
+          <div class="text-[11px] text-emerald-700 font-semibold">Coût estimé</div>
+          <div id="statCout" class="text-lg font-black text-emerald-800">0,00 €</div>
         </div>
       </div>
     </div>
 
-    <!-- Dernières saisies -->
-    <div class="bg-white rounded-xl shadow-sm p-4 border border-slate-200">
-      <h2 class="font-semibold text-slate-700 mb-2 text-base">Historique récent</h2>
-      <div id="historiqueList" class="space-y-2 text-xs divide-y"></div>
+    <!-- Historique des saisies du mois -->
+    <div class="bg-white rounded-2xl shadow-sm p-4 border border-slate-200">
+      <h2 class="font-bold text-slate-800 mb-2 text-sm">Détail du mois sélectionné</h2>
+      <div id="historiqueList" class="space-y-2 text-xs divide-y divide-slate-100"></div>
     </div>
 
   </main>
 
   <script>
-    // Tarifs par défaut
     const TARIFS = { cantine: 4.50, garderieHoraire: 2.50, centreJour: 15.00, centreDemi: 8.50, centreRepas: 4.50 };
 
-    // Initialisation date du jour
-    document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];
+    function initAujourdhui() {
+      const now = new Date();
+      const localDate = now.toLocaleDateString('fr-CA'); // format YYYY-MM-DD
+      document.getElementById('dateInput').value = localDate;
+      majDateDisplay(now);
+      chargerJourneeExistante(localDate);
+    }
+
+    function majDateDisplay(d) {
+      const opts = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+      document.getElementById('currentDateDisplay').innerText = d.toLocaleDateString('fr-FR', opts);
+    }
+
+    function setHeureActuelle(fieldId) {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById(fieldId).value = `${hh}:${mm}`;
+      majDureesDirect();
+    }
 
     function getDureeMinutes(arr, dep) {
       if (!arr || !dep) return 0;
       const [h1, m1] = arr.split(':').map(Number);
       const [h2, m2] = dep.split(':').map(Number);
-      return Math.max(0, (h2 * 60 + m2) - (h1 * 60 + m1));
+      return (h2 * 60 + m2) - (h1 * 60 + m1);
+    }
+
+    function majDureesDirect() {
+      const mArr = document.getElementById('matinArrivee').value;
+      const mDep = document.getElementById('matinDepart').value;
+      const sArr = document.getElementById('soirArrivee').value;
+      const sDep = document.getElementById('soirDepart').value;
+
+      const durM = getDureeMinutes(mArr, mDep);
+      const durS = getDureeMinutes(sArr, sDep);
+
+      document.getElementById('labelDureeMatin').innerText = (mArr && mDep) 
+        ? (durM > 0 ? `${Math.floor(durM/60)}h${String(durM%60).padStart(2,'0')}` : 'Erreur heure') : '';
+      document.getElementById('labelDureeSoir').innerText = (sArr && sDep) 
+        ? (durS > 0 ? `${Math.floor(durS/60)}h${String(durS%60).padStart(2,'0')}` : 'Erreur heure') : '';
+    }
+
+    function showToast(msg, isError = false) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.className = `fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg text-xs font-semibold shadow-lg text-white transition duration-300 opacity-100 ${isError ? 'bg-red-600' : 'bg-emerald-600'}`;
+      setTimeout(() => { t.className += ' opacity-0 pointer-events-none'; }, 2500);
     }
 
     function getRecords() {
@@ -154,130 +227,175 @@
       actualiserAffichage();
     }
 
+    function chargerJourneeExistante(dateStr) {
+      const records = getRecords();
+      const item = records.find(r => r.date === dateStr);
+      if (item) {
+        document.getElementById('periodeInput').value = item.periode;
+        document.getElementById('cantineInput').checked = item.cantine;
+        document.getElementById('matinArrivee').value = item.matinArr || '';
+        document.getElementById('matinDepart').value = item.matinDep || '';
+        document.getElementById('soirArrivee').value = item.soirArr || '';
+        document.getElementById('soirDepart').value = item.soirDep || '';
+        document.getElementById('centrePresence').value = item.centrePresence;
+        document.getElementById('centreRepas').checked = item.centreRepas;
+        document.getElementById('notesInput').value = item.notes || '';
+      }
+      majDureesDirect();
+    }
+
+    document.getElementById('dateInput').addEventListener('change', (e) => {
+      chargerJourneeExistante(e.target.value);
+    });
+
     document.getElementById('periscoForm').addEventListener('submit', (e) => {
       e.preventDefault();
-      const records = getRecords();
-      const date = document.getElementById('dateInput').value;
-      const matinArr = document.getElementById('matinArrivee').value;
-      const matinDep = document.getElementById('matinDepart').value;
-      const soirArr = document.getElementById('soirArrivee').value;
-      const soirDep = document.getElementById('soirDepart').value;
-      
-      const dureeMatin = getDureeMinutes(matinArr, matinDep);
-      const dureeSoir = getDureeMinutes(soirArr, soirDep);
 
+      const date = document.getElementById('dateInput').value;
+      const mArr = document.getElementById('matinArrivee').value;
+      const mDep = document.getElementById('matinDepart').value;
+      const sArr = document.getElementById('soirArrivee').value;
+      const sDep = document.getElementById('soirDepart').value;
+
+      // Contrôles de validation horaire
+      if ((mArr && !mDep) || (!mArr && mDep)) {
+        showToast('Garderie matin : arrivée et départ requis', true);
+        return;
+      }
+      if (mArr && mDep && getDureeMinutes(mArr, mDep) <= 0) {
+        showToast('Garderie matin : le départ doit être après l\'arrivée', true);
+        return;
+      }
+      if ((sArr && !sDep) || (!sArr && sDep)) {
+        showToast('Garderie soir : arrivée et départ requis', true);
+        return;
+      }
+      if (sArr && sDep && getDureeMinutes(sArr, sDep) <= 0) {
+        showToast('Garderie soir : le départ doit être après l\'arrivée', true);
+        return;
+      }
+
+      const records = getRecords();
       const entry = {
         date,
         periode: document.getElementById('periodeInput').value,
         cantine: document.getElementById('cantineInput').checked,
-        matinArr, matinDep, dureeMatin,
-        soirArr, soirDep, dureeSoir,
+        matinArr: mArr, matinDep: mDep, dureeMatin: getDureeMinutes(mArr, mDep),
+        soirArr: sArr, soirDep: sDep, dureeSoir: getDureeMinutes(sArr, sDep),
         centrePresence: document.getElementById('centrePresence').value,
         centreRepas: document.getElementById('centreRepas').checked,
-        notes: document.getElementById('notesInput').value
+        notes: document.getElementById('notesInput').value.trim()
       };
 
-      // Remplacement si la date existe déjà, sinon ajout
-      const index = records.findIndex(r => r.date === date);
-      if (index >= 0) records[index] = entry;
+      const idx = records.findIndex(r => r.date === date);
+      if (idx >= 0) records[idx] = entry;
       else records.push(entry);
 
       records.sort((a, b) => new Date(b.date) - new Date(a.date));
       saveRecords(records);
-
-      // Reset partiel
-      document.getElementById('matinArrivee').value = '';
-      document.getElementById('matinDepart').value = '';
-      document.getElementById('soirArrivee').value = '';
-      document.getElementById('soirDepart').value = '';
-      document.getElementById('notesInput').value = '';
-      alert('Journée enregistrée avec succès !');
+      showToast('Journée enregistrée');
     });
 
     function actualiserAffichage() {
       const records = getRecords();
-      const currentMonth = new Date().toISOString().slice(0, 7);
-      
+      const selectedMonth = document.getElementById('filtreMois').value;
+
       let totRepas = 0;
-      let totMinutesGarderie = 0;
+      let totMinGarderie = 0;
       let totJoursCentre = 0;
       let coutTotal = 0;
 
-      records.forEach(r => {
-        if (r.date.startsWith(currentMonth)) {
-          if (r.cantine) { totRepas++; coutTotal += TARIFS.cantine; }
-          const min = (r.dureeMatin || 0) + (r.dureeSoir || 0);
-          totMinutesGarderie += min;
-          coutTotal += (min / 60) * TARIFS.garderieHoraire;
+      const itemsMois = records.filter(r => r.date.startsWith(selectedMonth));
 
-          if (r.centrePresence === 'Journée entière') { totJoursCentre += 1; coutTotal += TARIFS.centreJour; }
-          else if (r.centrePresence.includes('Demi-journée')) { totJoursCentre += 0.5; coutTotal += TARIFS.centreDemi; }
-          if (r.centreRepas) coutTotal += TARIFS.centreRepas;
-        }
+      itemsMois.forEach(r => {
+        if (r.cantine) { totRepas++; coutTotal += TARIFS.cantine; }
+        const min = (r.dureeMatin || 0) + (r.dureeSoir || 0);
+        totMinGarderie += min;
+        coutTotal += (min / 60) * TARIFS.garderieHoraire;
+
+        if (r.centrePresence === 'Journée entière') { totJoursCentre += 1; coutTotal += TARIFS.centreJour; }
+        else if (r.centrePresence && r.centrePresence.includes('Demi-journée')) { totJoursCentre += 0.5; coutTotal += TARIFS.centreDemi; }
+        if (r.centreRepas) coutTotal += TARIFS.centreRepas;
       });
 
-      const h = Math.floor(totMinutesGarderie / 60);
-      const m = totMinutesGarderie % 60;
+      const h = Math.floor(totMinGarderie / 60);
+      const m = totMinGarderie % 60;
 
       document.getElementById('statRepas').innerText = totRepas;
-      document.getElementById('statGarderie').innerText = `${h}h${m.toString().padStart(2, '0')}`;
-      document.getElementById('statCentre').innerText = totJoursCentre;
-      document.getElementById('statCout').innerText = coutTotal.toFixed(2) + ' €';
+      document.getElementById('statGarderie').innerText = `${h}h${String(m).padStart(2,'0')}`;
+      document.getElementById('statCentre').innerText = `${totJoursCentre} j`;
+      document.getElementById('statCout').innerText = coutTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
-      // Rendu Historique récent (5 derniers)
       const container = document.getElementById('historiqueList');
-      container.innerHTML = records.slice(0, 5).map(r => `
-        <div class="pt-2 flex justify-between items-center">
+      if (itemsMois.length === 0) {
+        container.innerHTML = '<div class="py-4 text-center text-slate-400">Aucune donnée pour ce mois.</div>';
+        return;
+      }
+
+      container.innerHTML = itemsMois.map(r => `
+        <div class="pt-2 pb-1 flex justify-between items-start">
           <div>
-            <span class="font-bold text-slate-700">${r.date}</span> (${r.periode})
-            <div class="text-[11px] text-slate-500">
-              ${r.cantine ? 'Cantine • ' : ''}Garderie: ${Math.round((r.dureeMatin + r.dureeSoir)/60*10)/10}h • Centre: ${r.centrePresence}
+            <div class="font-bold text-slate-800">${formaterDateFr(r.date)} <span class="text-[10px] font-normal text-slate-500">(${r.periode})</span></div>
+            <div class="text-[11px] text-slate-600 mt-0.5 space-x-1">
+              ${r.cantine ? '<span class="bg-blue-100 text-blue-800 px-1 rounded">Cantine</span>' : ''}
+              ${(r.dureeMatin + r.dureeSoir) > 0 ? `<span class="bg-amber-100 text-amber-900 px-1 rounded">Garderie: ${Math.floor((r.dureeMatin + r.dureeSoir)/60)}h${String((r.dureeMatin + r.dureeSoir)%60).padStart(2,'0')}</span>` : ''}
+              ${r.centrePresence !== 'Aucun' ? `<span class="bg-purple-100 text-purple-900 px-1 rounded">Centre: ${r.centrePresence}</span>` : ''}
             </div>
+            ${r.notes ? `<div class="text-[10px] text-slate-400 italic mt-0.5">${r.notes}</div>` : ''}
           </div>
-          <button onclick="supprimerLigne('${r.date}')" class="text-red-500 hover:text-red-700">✕</button>
+          <button onclick="supprimerLigne('${r.date}')" class="text-slate-300 hover:text-red-500 text-base px-2">✕</button>
         </div>
       `).join('');
     }
 
+    function formaterDateFr(dateStr) {
+      const [y, m, d] = dateStr.split('-');
+      return `${d}/${m}/${y}`;
+    }
+
     function supprimerLigne(date) {
-      if (confirm(`Supprimer l'enregistrement du ${date} ?`)) {
+      if (confirm(`Supprimer la saisie du ${formaterDateFr(date)} ?`)) {
         const records = getRecords().filter(r => r.date !== date);
         saveRecords(records);
+        showToast('Enregistrement supprimé');
       }
     }
 
     function exporterExcel() {
       const records = getRecords();
-      if (!records.length) return alert('Aucune donnée à exporter.');
+      if (!records.length) return showToast('Aucune donnée à exporter', true);
 
-      const dataToExport = records.map(r => ({
+      const rows = records.map(r => ({
         "Date": r.date,
         "Période": r.periode,
         "Cantine": r.cantine ? "Oui" : "Non",
-        "Matin Arrivée": r.matinArr,
-        "Matin Départ": r.matinDep,
-        "Matin Durée (min)": r.dureeMatin,
-        "Soir Arrivée": r.soirArr,
-        "Soir Départ": r.soirDep,
-        "Soir Durée (min)": r.dureeSoir,
-        "Total Garderie (min)": r.dureeMatin + r.dureeSoir,
+        "Matin Arrivée": r.matinArr || "",
+        "Matin Départ": r.matinDep || "",
+        "Matin Durée (min)": r.dureeMatin || 0,
+        "Soir Arrivée": r.soirArr || "",
+        "Soir Départ": r.soirDep || "",
+        "Soir Durée (min)": r.dureeSoir || 0,
+        "Total Garderie (min)": (r.dureeMatin || 0) + (r.dureeSoir || 0),
         "Centre Présence": r.centrePresence,
         "Centre Repas": r.centreRepas ? "Oui" : "Non",
-        "Remarques": r.notes
+        "Remarques": r.notes || ""
       }));
 
-      const ws = XLSX.utils.json_to_sheet(dataToExport);
+      const ws = XLSX.utils.json_to_sheet(rows);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Saisie");
-      XLSX.writeFile(wb, `Suivi_Periscolaire_${new Date().toISOString().slice(0,10)}.xlsx`);
+      XLSX.utils.book_append_sheet(wb, ws, "Journal");
+      XLSX.writeFile(wb, `Périscolaire_${document.getElementById('filtreMois').value}.xlsx`);
     }
 
-    // Enregistrement Service Worker pour le mode PWA
+    // Initialisation au chargement
+    const nowIso = new Date().toISOString();
+    document.getElementById('filtreMois').value = nowIso.slice(0, 7);
+    initAujourdhui();
+    actualiserAffichage();
+
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js');
     }
-
-    actualiserAffichage();
   </script>
 </body>
 </html>
