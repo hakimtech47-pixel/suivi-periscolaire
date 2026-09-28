@@ -216,7 +216,7 @@
 
   <script>
     // --- 1. CONFIGURATION SUPABASE ---
-    const SUPABASE_URL = "https://wodajjtkfxkslablxtap.supabase.co/rest/v1/";
+    const SUPABASE_URL = "https://wodajjtkfxkslablxtap.supabase.co/rest/v1";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvZGFqanRrZnhrc2xhYmx4dGFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2MDI3MjQsImV4cCI6MjEwNjE3ODcyNH0.V85P4KY-OwVppr579vbyxs4qf7CbAD8nbjRX2bEXUdU";
     const isSupabaseConfigured = SUPABASE_URL !== "VOTRE_PROJET_URL" && SUPABASE_ANON_KEY !== "VOTRE_CLE_PUBLIQUE_ANON";
     const supabaseClient = isSupabaseConfigured ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
