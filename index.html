@@ -21,10 +21,13 @@
       <p class="text-[11px] text-blue-100" id="currentDateDisplay"></p>
     </div>
     <div class="flex items-center space-x-2">
-      <button onclick="ouvrirModalTarifs()" title="Paramètres des tarifs" class="bg-blue-700 hover:bg-blue-800 active:scale-95 text-xs p-2 rounded-lg border border-blue-400 transition">
+      <button type="button" onclick="synchroniserDepuisSheets()" title="Synchroniser avec Sheets" class="bg-blue-700 hover:bg-blue-800 active:scale-95 text-xs p-2 rounded-lg border border-blue-400 transition">
+        🔄
+      </button>
+      <button type="button" onclick="ouvrirModalTarifs()" title="Paramètres des tarifs" class="bg-blue-700 hover:bg-blue-800 active:scale-95 text-xs p-2 rounded-lg border border-blue-400 transition">
         ⚙️
       </button>
-      <button onclick="exporterExcel()" class="bg-blue-700 hover:bg-blue-800 active:scale-95 text-xs px-3 py-1.5 rounded-lg border border-blue-400 font-medium transition">
+      <button type="button" onclick="exporterExcel()" class="bg-blue-700 hover:bg-blue-800 active:scale-95 text-xs px-3 py-1.5 rounded-lg border border-blue-400 font-medium transition">
         Export .xlsx
       </button>
     </div>
@@ -127,10 +130,10 @@
 
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Notes / Remarques</label>
-          <input type="text" id="notesInput" placeholder="Ex : retard bus..." class="w-full bg-slate-50 border rounded-lg p-2 text-sm">
+          <input type="text" id="notesInput" placeholder="Ex : retard, sortie scolaire..." class="w-full bg-slate-50 border rounded-lg p-2 text-sm">
         </div>
 
-        <button type="submit" id="btnSubmit" class="w-full bg-blue-600 active:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm shadow transition active:scale-[0.99]">
+        <button type="submit" id="btnSubmit" class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm shadow transition active:scale-[0.99]">
           Enregistrer dans Google Sheets
         </button>
       </form>
@@ -176,7 +179,7 @@
     <div class="bg-white rounded-2xl shadow-xl border max-w-sm w-full p-5 space-y-4">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-bold text-slate-800 text-sm">Grille tarifaire (€)</h3>
-        <button onclick="fermerModalTarifs()" class="text-slate-400 hover:text-slate-600 text-lg leading-none">&times;</button>
+        <button type="button" onclick="fermerModalTarifs()" class="text-slate-400 hover:text-slate-600 text-lg leading-none">&times;</button>
       </div>
 
       <div class="space-y-3 text-xs">
@@ -203,10 +206,10 @@
       </div>
 
       <div class="flex space-x-2 pt-2 border-t">
-        <button onclick="reinitialiserTarifs()" class="w-1/2 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-semibold">
+        <button type="button" onclick="reinitialiserTarifs()" class="w-1/2 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-semibold">
           Défaut
         </button>
-        <button onclick="sauvegarderTarifs()" class="w-1/2 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg text-xs font-semibold">
+        <button type="button" onclick="sauvegarderTarifs()" class="w-1/2 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg text-xs font-semibold">
           Enregistrer
         </button>
       </div>
@@ -214,12 +217,12 @@
   </div>
 
   <script>
-    // --- URL DE L'APPLICATION WEB APPS SCRIPT ---
-    const GOOGLE_SCRIPT_URL = https://script.google.com/macros/s/AKfycbw6mlcRtCjG0tR8dsmO1IpHlan4F-gz1P3NYx3u5jWJ9-TUrPLDwyGsU9JhoxoJgKHUaQ/exec;
+    // URL Google Apps Script configurée
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6mlcRtCjG0tR8dsmO1IpHlan4F-gz1P3NYx3u5jWJ9-TUrPLDwyGsU9JhoxoJgKHUaQ/exec";
 
     let records = JSON.parse(localStorage.getItem('perisco_data') || '[]');
 
-    // --- GESTION DES TARIFS ---
+    // Grille par défaut
     const TARIFS_DEFAUT = { cantine: 4.50, garderieHoraire: 2.50, centreJour: 15.00, centreDemi: 8.50, centreRepas: 4.50 };
 
     function getTarifs() {
@@ -264,10 +267,13 @@
       }
     }
 
-    // --- FORMULAIRE ET HORAIRES ---
     function initAujourdhui() {
       const now = new Date();
-      const localDate = now.toLocaleDateString('fr-CA');
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      const localDate = `${y}-${m}-${d}`;
+
       document.getElementById('dateInput').value = localDate;
       majDateDisplay(now);
       chargerJourneeExistante(localDate);
@@ -290,7 +296,8 @@
       if (!arr || !dep) return 0;
       const [h1, m1] = arr.split(':').map(Number);
       const [h2, m2] = dep.split(':').map(Number);
-      return (h2 * 60 + m2) - (h1 * 60 + m1);
+      const diff = (h2 * 60 + m2) - (h1 * 60 + m1);
+      return diff > 0 ? diff : 0;
     }
 
     function majDureesDirect() {
@@ -303,29 +310,31 @@
       const durS = getDureeMinutes(sArr, sDep);
 
       document.getElementById('labelDureeMatin').innerText = (mArr && mDep) 
-        ? (durM > 0 ? `${Math.floor(durM/60)}h${String(durM%60).padStart(2,'0')}` : 'Erreur heure') : '';
+        ? `${Math.floor(durM/60)}h${String(durM%60).padStart(2,'0')}` : '';
       document.getElementById('labelDureeSoir').innerText = (sArr && sDep) 
-        ? (durS > 0 ? `${Math.floor(durS/60)}h${String(durS%60).padStart(2,'0')}` : 'Erreur heure') : '';
+        ? `${Math.floor(durS/60)}h${String(durS%60).padStart(2,'0')}` : '';
     }
 
     function showToast(msg, isError = false) {
       const t = document.getElementById('toast');
       t.innerText = msg;
       t.className = `fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg text-xs font-semibold shadow-lg text-white transition duration-300 opacity-100 ${isError ? 'bg-red-600' : 'bg-emerald-600'}`;
-      setTimeout(() => { t.className += ' opacity-0 pointer-events-none'; }, 2500);
+      setTimeout(() => {
+        t.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 opacity-0 pointer-events-none px-4 py-2 rounded-lg text-xs font-semibold shadow-lg text-white';
+      }, 2500);
     }
 
     function chargerJourneeExistante(dateStr) {
       const item = records.find(r => r.date === dateStr);
       if (item) {
-        document.getElementById('periodeInput').value = item.periode;
-        document.getElementById('cantineInput').checked = item.cantine;
+        document.getElementById('periodeInput').value = item.periode || 'Scolaire';
+        document.getElementById('cantineInput').checked = !!item.cantine;
         document.getElementById('matinArrivee').value = item.matinArr || '';
         document.getElementById('matinDepart').value = item.matinDep || '';
         document.getElementById('soirArrivee').value = item.soirArr || '';
         document.getElementById('soirDepart').value = item.soirDep || '';
-        document.getElementById('centrePresence').value = item.centrePresence;
-        document.getElementById('centreRepas').checked = item.centreRepas;
+        document.getElementById('centrePresence').value = item.centrePresence || 'Aucun';
+        document.getElementById('centreRepas').checked = !!item.centreRepas;
         document.getElementById('notesInput').value = item.notes || '';
       } else {
         document.getElementById('cantineInput').checked = false;
@@ -344,12 +353,8 @@
       chargerJourneeExistante(e.target.value);
     });
 
-    // --- SYNCHRONISATION GOOGLE SHEETS ---
-    async function chargerDepuisGoogleSheets() {
-      if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === "VOTRE_URL_APPS_SCRIPT_EXEC") {
-        actualiserAffichage();
-        return;
-      }
+    async function synchroniserDepuisSheets() {
+      showToast('Actualisation...');
       try {
         const res = await fetch(GOOGLE_SCRIPT_URL);
         const json = await res.json();
@@ -362,17 +367,23 @@
           records.sort((a, b) => new Date(b.date) - new Date(a.date));
           localStorage.setItem('perisco_data', JSON.stringify(records));
           actualiserAffichage();
+          showToast('Données synchronisées !');
         }
       } catch (err) {
-        console.warn("Mode local actif :", err.message);
-        actualiserAffichage();
+        showToast('Erreur de synchronisation', true);
       }
     }
 
+    // Soumission du formulaire
     document.getElementById('periscoForm').addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const date = document.getElementById('dateInput').value;
+      if (!date) {
+        showToast('Veuillez sélectionner une date', true);
+        return;
+      }
+
       const mArr = document.getElementById('matinArrivee').value;
       const mDep = document.getElementById('matinDepart').value;
       const sArr = document.getElementById('soirArrivee').value;
@@ -382,16 +393,8 @@
         showToast('Garderie matin : arrivée et départ requis', true);
         return;
       }
-      if (mArr && mDep && getDureeMinutes(mArr, mDep) <= 0) {
-        showToast('Garderie matin : départ incohérent', true);
-        return;
-      }
       if ((sArr && !sDep) || (!sArr && sDep)) {
         showToast('Garderie soir : arrivée et départ requis', true);
-        return;
-      }
-      if (sArr && sDep && getDureeMinutes(sArr, sDep) <= 0) {
-        showToast('Garderie soir : départ incohérent', true);
         return;
       }
 
@@ -399,7 +402,7 @@
       const durS = getDureeMinutes(sArr, sDep);
 
       const payload = {
-        date,
+        date: date,
         periode: document.getElementById('periodeInput').value,
         cantine: document.getElementById('cantineInput').checked,
         matinArr: mArr || '',
@@ -413,7 +416,7 @@
         notes: document.getElementById('notesInput').value.trim()
       };
 
-      // Sauvegarde locale immédiate
+      // 1. Sauvegarde locale immédiate
       const idx = records.findIndex(r => r.date === date);
       if (idx >= 0) records[idx] = payload;
       else records.push(payload);
@@ -421,27 +424,23 @@
       localStorage.setItem('perisco_data', JSON.stringify(records));
       actualiserAffichage();
 
-      // Envoi direct à Google Sheets
-      if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== "VOTRE_URL_APPS_SCRIPT_EXEC") {
-        showToast('Envoi vers Google Sheets...');
-        try {
-          await fetch(GOOGLE_SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors', // Évite les blocages CORS Google Apps Script
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          showToast('Enregistré dans Google Sheets !');
-        } catch (err) {
-          showToast('Erreur envoi Sheets (gardé en local)', true);
-          console.error(err);
-        }
-      } else {
-        showToast('Enregistré en local');
+      // 2. Notification locale instantanée
+      showToast('Envoi en cours...');
+
+      // 3. Envoi réseau à Google Sheets
+      try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        showToast('Enregistré dans Google Sheets !');
+      } catch (err) {
+        showToast('Enregistré en local (erreur réseau)', true);
       }
     });
 
-    // --- BILAN ET HISTORIQUE ---
     function actualiserAffichage() {
       const tarifs = getTarifs();
       const selectedMonth = document.getElementById('filtreMois').value;
@@ -451,7 +450,7 @@
       let totJoursCentre = 0;
       let coutTotal = 0;
 
-      const itemsMois = records.filter(r => r.date.startsWith(selectedMonth));
+      const itemsMois = records.filter(r => r.date && r.date.startsWith(selectedMonth));
 
       itemsMois.forEach(r => {
         if (r.cantine) { totRepas++; coutTotal += tarifs.cantine; }
@@ -485,7 +484,7 @@
             <div class="text-[11px] text-slate-600 mt-0.5 space-x-1">
               ${r.cantine ? '<span class="bg-blue-100 text-blue-800 px-1 rounded">Cantine</span>' : ''}
               ${(r.dureeMatin + r.dureeSoir) > 0 ? `<span class="bg-amber-100 text-amber-900 px-1 rounded">Garderie: ${Math.floor((r.dureeMatin + r.dureeSoir)/60)}h${String((r.dureeMatin + r.dureeSoir)%60).padStart(2,'0')}</span>` : ''}
-              ${r.centrePresence !== 'Aucun' ? `<span class="bg-purple-100 text-purple-900 px-1 rounded">Centre: ${r.centrePresence}</span>` : ''}
+              ${r.centrePresence && r.centrePresence !== 'Aucun' ? `<span class="bg-purple-100 text-purple-900 px-1 rounded">Centre: ${r.centrePresence}</span>` : ''}
             </div>
             ${r.notes ? `<div class="text-[10px] text-slate-400 italic mt-0.5">${r.notes}</div>` : ''}
           </div>
@@ -494,6 +493,7 @@
     }
 
     function formaterDateFr(dateStr) {
+      if (!dateStr || !dateStr.includes('-')) return dateStr;
       const [y, m, d] = dateStr.split('-');
       return `${d}/${m}/${y}`;
     }
@@ -523,13 +523,16 @@
       XLSX.writeFile(wb, `Périscolaire_${document.getElementById('filtreMois').value}.xlsx`);
     }
 
-    const nowIso = new Date().toISOString();
-    document.getElementById('filtreMois').value = nowIso.slice(0, 7);
+    // Initialisation
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    document.getElementById('filtreMois').value = `${y}-${m}`;
     initAujourdhui();
-    chargerDepuisGoogleSheets();
+    synchroniserDepuisSheets();
 
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js');
+      navigator.serviceWorker.register('sw.js').catch(() => {});
     }
   </script>
 </body>
