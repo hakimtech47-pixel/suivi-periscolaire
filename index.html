@@ -7,7 +7,6 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#2563eb">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans pb-12 select-none">
@@ -128,11 +127,11 @@
 
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Notes / Remarques</label>
-          <input type="text" id="notesInput" placeholder="Ex : retard, sortie..." class="w-full bg-slate-50 border rounded-lg p-2 text-sm">
+          <input type="text" id="notesInput" placeholder="Ex : retard bus..." class="w-full bg-slate-50 border rounded-lg p-2 text-sm">
         </div>
 
         <button type="submit" id="btnSubmit" class="w-full bg-blue-600 active:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm shadow transition active:scale-[0.99]">
-          Enregistrer la journée
+          Enregistrer dans Google Sheets
         </button>
       </form>
     </div>
@@ -215,16 +214,12 @@
   </div>
 
   <script>
-    // --- 1. CONFIGURATION SUPABASE ---
-    const SUPABASE_URL = "https://wodajjtkfxkslablxtap.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvZGFqanRrZnhrc2xhYmx4dGFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2MDI3MjQsImV4cCI6MjEwNjE3ODcyNH0.V85P4KY-OwVppr579vbyxs4qf7CbAD8nbjRX2bEXUdU";
-    const isSupabaseConfigured = SUPABASE_URL !== "VOTRE_PROJET_URL" && SUPABASE_ANON_KEY !== "VOTRE_CLE_PUBLIQUE_ANON";
-    const supabaseClient = isSupabaseConfigured ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+    // --- URL DE L'APPLICATION WEB APPS SCRIPT ---
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6mlcRtCjG0tR8dsmO1IpHlan4F-gz1P3NYx3u5jWJ9-TUrPLDwyGsU9JhoxoJgKHUaQ/exec";
 
-    // Cache local en mémoire
     let records = JSON.parse(localStorage.getItem('perisco_data') || '[]');
 
-    // --- 2. GESTION DES TARIFS ---
+    // --- GESTION DES TARIFS ---
     const TARIFS_DEFAUT = { cantine: 4.50, garderieHoraire: 2.50, centreJour: 15.00, centreDemi: 8.50, centreRepas: 4.50 };
 
     function getTarifs() {
@@ -269,7 +264,7 @@
       }
     }
 
-    // --- 3. UTILITAIRES ET FORMULAIRE ---
+    // --- FORMULAIRE ET HORAIRES ---
     function initAujourdhui() {
       const now = new Date();
       const localDate = now.toLocaleDateString('fr-CA');
@@ -349,45 +344,31 @@
       chargerJourneeExistante(e.target.value);
     });
 
-    // --- 4. SYNCHRONISATION SUPABASE ---
-    async function chargerDonneesSupabase() {
-      if (!isSupabaseConfigured) {
+    // --- SYNCHRONISATION GOOGLE SHEETS ---
+    async function chargerDepuisGoogleSheets() {
+      if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === "VOTRE_URL_APPS_SCRIPT_EXEC") {
         actualiserAffichage();
         return;
       }
       try {
-        const { data, error } = await supabaseClient
-          .from('pointages')
-          .select('*')
-          .order('date', { ascending: false });
-
-        if (error) throw error;
-
-        if (data) {
-          records = data.map(r => ({
-            date: r.date,
-            periode: r.periode,
-            cantine: r.cantine,
-            matinArr: r.matin_arr,
-            matinDep: r.matin_dep,
-            dureeMatin: r.duree_matin,
-            soirArr: r.soir_arr,
-            soirDep: r.soir_dep,
-            dureeSoir: r.duree_soir,
-            centrePresence: r.centre_presence,
-            centreRepas: r.centre_repas,
-            notes: r.notes
+        const res = await fetch(GOOGLE_SCRIPT_URL);
+        const json = await res.json();
+        if (json.status === "success" && json.data) {
+          records = json.data.map(r => ({
+            ...r,
+            dureeMatin: getDureeMinutes(r.matinArr, r.matinDep),
+            dureeSoir: getDureeMinutes(r.soirArr, r.soirDep)
           }));
+          records.sort((a, b) => new Date(b.date) - new Date(a.date));
           localStorage.setItem('perisco_data', JSON.stringify(records));
           actualiserAffichage();
         }
       } catch (err) {
-        console.warn("Connexion distante échouée, mode local utilisé :", err.message);
+        console.warn("Mode local actif :", err.message);
         actualiserAffichage();
       }
     }
 
-    // --- 5. SOUMISSION & ENREGISTREMENT ---
     document.getElementById('periscoForm').addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -417,7 +398,7 @@
       const durM = getDureeMinutes(mArr, mDep);
       const durS = getDureeMinutes(sArr, sDep);
 
-      const localEntry = {
+      const payload = {
         date,
         periode: document.getElementById('periodeInput').value,
         cantine: document.getElementById('cantineInput').checked,
@@ -432,64 +413,35 @@
         notes: document.getElementById('notesInput').value.trim()
       };
 
-      // Sauvegarde locale instantanée
+      // Sauvegarde locale immédiate
       const idx = records.findIndex(r => r.date === date);
-      if (idx >= 0) records[idx] = localEntry;
-      else records.push(localEntry);
+      if (idx >= 0) records[idx] = payload;
+      else records.push(payload);
       records.sort((a, b) => new Date(b.date) - new Date(a.date));
       localStorage.setItem('perisco_data', JSON.stringify(records));
       actualiserAffichage();
 
-      // Envoi distant Supabase
-      if (isSupabaseConfigured) {
-        showToast('Synchronisation cloud...');
-        const payload = {
-          date: date,
-          periode: localEntry.periode,
-          cantine: localEntry.cantine,
-          matin_arr: mArr || null,
-          matin_dep: mDep || null,
-          duree_matin: durM,
-          soir_arr: sArr || null,
-          soir_dep: sDep || null,
-          duree_soir: durS,
-          centre_presence: localEntry.centrePresence,
-          centre_repas: localEntry.centreRepas,
-          notes: localEntry.notes
-        };
-
-        const { error } = await supabaseClient.from('pointages').upsert(payload);
-        if (error) {
-          showToast('Erreur de synchronisation cloud', true);
-          console.error(error);
-        } else {
-          showToast('Journée synchronisée');
+      // Envoi direct à Google Sheets
+      if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== "VOTRE_URL_APPS_SCRIPT_EXEC") {
+        showToast('Envoi vers Google Sheets...');
+        try {
+          await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', // Évite les blocages CORS Google Apps Script
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          showToast('Enregistré dans Google Sheets !');
+        } catch (err) {
+          showToast('Erreur envoi Sheets (gardé en local)', true);
+          console.error(err);
         }
       } else {
-        showToast('Journée enregistrée (local)');
+        showToast('Enregistré en local');
       }
     });
 
-    // --- 6. SUPPRESSION ---
-    async function supprimerLigne(date) {
-      if (!confirm(`Supprimer la saisie du ${formaterDateFr(date)} ?`)) return;
-
-      // Suppression locale
-      records = records.filter(r => r.date !== date);
-      localStorage.setItem('perisco_data', JSON.stringify(records));
-      actualiserAffichage();
-
-      // Suppression distante
-      if (isSupabaseConfigured) {
-        const { error } = await supabaseClient.from('pointages').delete().eq('date', date);
-        if (error) showToast('Erreur suppression cloud', true);
-        else showToast('Enregistrement supprimé');
-      } else {
-        showToast('Enregistrement supprimé');
-      }
-    }
-
-    // --- 7. RENDU DU TABLEAU DE BORD ---
+    // --- BILAN ET HISTORIQUE ---
     function actualiserAffichage() {
       const tarifs = getTarifs();
       const selectedMonth = document.getElementById('filtreMois').value;
@@ -537,7 +489,6 @@
             </div>
             ${r.notes ? `<div class="text-[10px] text-slate-400 italic mt-0.5">${r.notes}</div>` : ''}
           </div>
-          <button onclick="supprimerLigne('${r.date}')" class="text-slate-300 hover:text-red-500 text-base px-2">✕</button>
         </div>
       `).join('');
     }
@@ -547,7 +498,6 @@
       return `${d}/${m}/${y}`;
     }
 
-    // --- 8. EXPORTATION EXCEL ---
     function exporterExcel() {
       if (!records.length) return showToast('Aucune donnée à exporter', true);
 
@@ -573,11 +523,10 @@
       XLSX.writeFile(wb, `Périscolaire_${document.getElementById('filtreMois').value}.xlsx`);
     }
 
-    // --- 9. DÉMARRAGE ---
     const nowIso = new Date().toISOString();
     document.getElementById('filtreMois').value = nowIso.slice(0, 7);
     initAujourdhui();
-    chargerDonneesSupabase();
+    chargerDepuisGoogleSheets();
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js');
