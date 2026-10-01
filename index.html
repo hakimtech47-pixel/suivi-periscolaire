@@ -30,7 +30,7 @@
       </div>
     </div>
 
-    <!-- Sélecteur Quotient Familial Municipal -->
+    <!-- Sélecteur de QF municipal -->
     <div class="bg-blue-700/80 p-2 rounded-xl flex items-center justify-between text-xs">
       <span class="font-medium text-blue-100">Tranche QF :</span>
       <select id="selectQF" onchange="changerQF()" class="bg-white text-slate-800 font-semibold rounded-lg px-2 py-1 text-xs outline-none max-w-[210px] truncate">
@@ -208,10 +208,9 @@
       </div>
     </div>
 
-    <!-- Accordéon Pliable : Détail des journées -->
-   <!-- Volet déroulant Détail des journées -->
+    <!-- Volet déroulant : Détail des journées -->
     <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-      <button type="button" onclick="toggleDetails()" class="w-full flex items-center justify-between text-left">
+      <button type="button" onclick="toggleDetails()" class="w-full flex items-center justify-between text-left focus:outline-none">
         <span class="flex items-center space-x-2 font-bold text-slate-800 text-xs sm:text-sm">
           <span>📋</span>
           <span>Détail des journées du mois</span>
@@ -220,9 +219,8 @@
         <span id="flecheDetails" class="text-slate-400 text-xs transition-transform duration-200">▼</span>
       </button>
 
-      <!-- Contenu masqué par défaut -->
       <div id="contenuDetails" class="hidden mt-3 pt-3 border-t border-slate-100">
-        <p class="text-[11px] text-slate-400 mb-2 italic">Clique sur une ligne pour charger la journée dans le formulaire.</p>
+        <p class="text-[11px] text-slate-400 mb-2 italic">Clique sur une ligne pour modifier la journée.</p>
         <div id="historiqueList" class="space-y-1.5 text-xs divide-y divide-slate-100"></div>
       </div>
     </div>
@@ -232,7 +230,6 @@
   <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6mlcRtCjG0tR8dsmO1IpHlan4F-gz1P3NYx3u5jWJ9-TUrPLDwyGsU9JhoxoJgKHUaQ/exec";
 
-    // Barème municipal officiel du Passage
     const BAREMES_PASSAGE = {
       "QF inférieur à 300":           { garderie: 7.11,  cantine: 1.00, centreJour: 2.35, centreDemi: 1.20 },
       "QF compris entre 300 et 480":  { garderie: 8.47,  cantine: 1.00, centreJour: 2.45, centreDemi: 1.25 },
@@ -263,6 +260,20 @@
         repasCheckbox.checked = true;
       } else if (presence === "Aucun") {
         repasCheckbox.checked = false;
+      }
+    }
+
+    function toggleDetails() {
+      const contenu = document.getElementById('contenuDetails');
+      const fleche = document.getElementById('flecheDetails');
+      const estMasque = contenu.classList.contains('hidden');
+
+      if (estMasque) {
+        contenu.classList.remove('hidden');
+        fleche.style.transform = 'rotate(180deg)';
+      } else {
+        contenu.classList.add('hidden');
+        fleche.style.transform = 'rotate(0deg)';
       }
     }
 
@@ -297,7 +308,6 @@
 
     function getDureeMinutes(arr, dep) {
       if (!arr || !dep) return 0;
-      
       const parseHMM = (val) => {
         const s = String(val).trim();
         const m = s.match(/(\d{1,2}):(\d{2})/);
@@ -351,7 +361,6 @@
         document.getElementById('centreRepasInput').checked = !!item.centreRepas;
         document.getElementById('notesInput').value = item.notes || '';
 
-        // Changement visuel pour indiquer une mise à jour
         btn.innerText = "Modifier la journée existante";
         btn.className = "w-full bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white font-bold py-3 rounded-xl text-sm shadow transition";
       } else {
@@ -364,25 +373,12 @@
         document.getElementById('centreRepasInput').checked = false;
         document.getElementById('notesInput').value = '';
 
-        // Bouton standard
         btn.innerText = "Enregistrer la journée";
         btn.className = "w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm shadow transition";
       }
       majDureesDirect();
     }
-function toggleDetails() {
-      const contenu = document.getElementById('contenuDetails');
-      const fleche = document.getElementById('flecheDetails');
-      
-      const estMasque = contenu.classList.contains('hidden');
-      if (estMasque) {
-        contenu.classList.remove('hidden');
-        fleche.style.transform = 'rotate(180deg)';
-      } else {
-        contenu.classList.add('hidden');
-        fleche.style.transform = 'rotate(0deg)';
-      }
-    }
+
     function selectionnerJourHistorique(dateStr) {
       const dateInput = document.getElementById('dateInput');
       dateInput.value = dateStr;
@@ -393,7 +389,6 @@ function toggleDetails() {
       
       chargerJourneeExistante(dateStr);
       
-      // Remonte sur le formulaire
       document.getElementById('periscoForm').scrollIntoView({ behavior: 'smooth' });
       showToast('Journée chargée pour modification');
     }
@@ -410,8 +405,8 @@ function toggleDetails() {
         if (json.status === "success" && json.data) {
           records = json.data.map(r => ({
             ...r,
-            dureeMatin: getDureeMinutes(r.matinArr, r.matinDep),
-            dureeSoir: getDureeMinutes(r.soirArr, r.soirDep)
+            dureeMatin: (typeof r.dureeMatin === 'number') ? r.dureeMatin : getDureeMinutes(r.matinArr, r.matinDep),
+            dureeSoir: (typeof r.dureeSoir === 'number') ? r.dureeSoir : getDureeMinutes(r.soirArr, r.soirDep)
           }));
           records.sort((a, b) => new Date(b.date) - new Date(a.date));
           localStorage.setItem('perisco_data', JSON.stringify(records));
@@ -441,7 +436,7 @@ function toggleDetails() {
       if ((mArr && !mDep) || (!mArr && mDep)) return showToast('Garderie matin incomplète', true);
       if ((sArr && !sDep) || (!sArr && sDep)) return showToast('Garderie soir incomplète', true);
 
-      // --- GARDE-FOU ANTI-ÉCRASEMENT ACCIDENTEL ---
+      // --- GARDE-FOU ANTI-ÉCRASEMENT ---
       const dateExiste = records.some(r => r.date === date);
       if (dateExiste) {
         const dateFr = formaterDateFr(date);
@@ -539,7 +534,7 @@ function toggleDetails() {
       const tarifs = BAREMES_PASSAGE[qf] || BAREMES_PASSAGE["QF compris entre 916 et 1215"];
       const selectedMonth = document.getElementById('filtreMois').value;
 
-      // 1. Bilan du mois en cours
+      // 1. Mois en cours sélectionné
       const bilanActuel = calculerBilanMois(selectedMonth, tarifs);
 
       document.getElementById('statRepas').innerText = bilanActuel.totRepas;
@@ -547,7 +542,7 @@ function toggleDetails() {
       document.getElementById('statCentre').innerText = `${bilanActuel.totJoursCentre} j`;
       document.getElementById('statCout').innerText = bilanActuel.coutTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
-      // 2. Bilan du mois précédent
+      // 2. Mois précédent
       const [annee, mois] = selectedMonth.split('-').map(Number);
       const datePrec = new Date(annee, mois - 2, 1);
       const cleMoisPrec = `${datePrec.getFullYear()}-${String(datePrec.getMonth() + 1).padStart(2, '0')}`;
@@ -562,7 +557,7 @@ function toggleDetails() {
       document.getElementById('prevCentre').innerText = `${bilanPrec.totJoursCentre} j`;
       document.getElementById('prevCout').innerText = bilanPrec.coutTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
-      // 3. Mise à jour de l'accordéon
+      // 3. Mise à jour de la liste
       const container = document.getElementById('historiqueList');
       const compteurElem = document.getElementById('compteurLignesDetails');
 
@@ -621,6 +616,7 @@ function toggleDetails() {
       XLSX.writeFile(wb, `Périscolaire_${document.getElementById('filtreMois').value}.xlsx`);
     }
 
+    // Initialisation
     const now = new Date();
     const y = now.getFullYear();
     const m = String(now.getMonth() + 1).padStart(2, '0');
@@ -628,6 +624,9 @@ function toggleDetails() {
     document.getElementById('selectQF').value = getQFActuel();
     initAujourdhui();
     actualiserAffichage();
+
+    // Synchronisation en tâche de fond au démarrage
+    synchroniserDepuisSheets();
   </script>
 </body>
 </html>
