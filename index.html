@@ -209,21 +209,23 @@
     </div>
 
     <!-- Accordéon Pliable : Détail des journées -->
-    <details class="group bg-white rounded-2xl border border-slate-200 p-4 shadow-sm transition">
-      <summary class="font-bold text-slate-800 text-xs sm:text-sm cursor-pointer list-none flex items-center justify-between">
-        <span class="flex items-center space-x-2">
+   <!-- Volet déroulant Détail des journées -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+      <button type="button" onclick="toggleDetails()" class="w-full flex items-center justify-between text-left">
+        <span class="flex items-center space-x-2 font-bold text-slate-800 text-xs sm:text-sm">
           <span>📋</span>
           <span>Détail des journées du mois</span>
           <span id="compteurLignesDetails" class="text-[11px] font-normal text-slate-400"></span>
         </span>
-        <span class="text-slate-400 group-open:rotate-180 transition-transform duration-200">▼</span>
-      </summary>
-      
-      <div class="mt-3 pt-3 border-t border-slate-100">
-        <p class="text-[11px] text-slate-400 mb-2 italic">Clique sur une ligne pour la modifier dans le formulaire.</p>
+        <span id="flecheDetails" class="text-slate-400 text-xs transition-transform duration-200">▼</span>
+      </button>
+
+      <!-- Contenu masqué par défaut -->
+      <div id="contenuDetails" class="hidden mt-3 pt-3 border-t border-slate-100">
+        <p class="text-[11px] text-slate-400 mb-2 italic">Clique sur une ligne pour charger la journée dans le formulaire.</p>
         <div id="historiqueList" class="space-y-1.5 text-xs divide-y divide-slate-100"></div>
       </div>
-    </details>
+    </div>
 
   </main>
 
