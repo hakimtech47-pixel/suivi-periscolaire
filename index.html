@@ -370,7 +370,19 @@
       }
       majDureesDirect();
     }
-
+function toggleDetails() {
+      const contenu = document.getElementById('contenuDetails');
+      const fleche = document.getElementById('flecheDetails');
+      
+      const estMasque = contenu.classList.contains('hidden');
+      if (estMasque) {
+        contenu.classList.remove('hidden');
+        fleche.style.transform = 'rotate(180deg)';
+      } else {
+        contenu.classList.add('hidden');
+        fleche.style.transform = 'rotate(0deg)';
+      }
+    }
     function selectionnerJourHistorique(dateStr) {
       const dateInput = document.getElementById('dateInput');
       dateInput.value = dateStr;
