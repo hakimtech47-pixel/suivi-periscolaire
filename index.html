@@ -71,7 +71,7 @@
           </div>
         </div>
 
-        <!-- Cantine scolaire (indépendante) -->
+        <!-- Cantine scolaire -->
         <label class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border cursor-pointer active:bg-slate-100">
           <span class="text-sm font-semibold text-slate-700">Repas cantine scolaire</span>
           <input type="checkbox" id="cantineInput" class="w-5 h-5 accent-blue-600 rounded">
@@ -152,7 +152,7 @@
       </form>
     </div>
 
-    <!-- Bilan du mois -->
+    <!-- Bilan du mois sélectionné -->
     <div class="bg-white rounded-2xl shadow-sm p-4 border border-slate-200 space-y-3">
       <div class="flex justify-between items-center">
         <h2 class="font-bold text-slate-800 text-sm">Bilan estimé du mois</h2>
@@ -166,7 +166,7 @@
         </div>
         <div class="p-2.5 bg-blue-50 rounded-xl">
           <div class="text-[11px] text-blue-600 font-semibold">Garderie</div>
-          <div id="statGarderie" class="text-lg font-black text-blue-950">0 j</div>
+          <div id="statGarderie" class="text-lg font-black text-blue-950">0 j (0.00€)</div>
         </div>
         <div class="p-2.5 bg-slate-50 rounded-xl">
           <div class="text-[11px] text-slate-500 font-semibold">Centre ALSH</div>
@@ -175,6 +175,35 @@
         <div class="p-2.5 bg-emerald-50 rounded-xl">
           <div class="text-[11px] text-emerald-700 font-semibold">Total estimé</div>
           <div id="statCout" class="text-lg font-black text-emerald-800">0,00 €</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Synthèse du mois précédent -->
+    <div class="bg-slate-50 rounded-2xl shadow-sm p-4 border border-slate-200 space-y-3">
+      <div class="flex justify-between items-center">
+        <h2 class="font-bold text-slate-700 text-xs flex items-center space-x-1">
+          <span>📅 Synthèse du mois précédent :</span>
+          <span id="labelMoisPrecedent" class="text-blue-700 font-semibold capitalize"></span>
+        </h2>
+      </div>
+      
+      <div class="grid grid-cols-2 gap-2 text-center">
+        <div class="p-2 bg-white rounded-xl border border-slate-200/60">
+          <div class="text-[10px] text-slate-500 font-medium">Cantine</div>
+          <div id="prevRepas" class="text-base font-bold text-slate-800">0</div>
+        </div>
+        <div class="p-2 bg-white rounded-xl border border-slate-200/60">
+          <div class="text-[10px] text-slate-500 font-medium">Garderie</div>
+          <div id="prevGarderie" class="text-base font-bold text-slate-800">0 j (0.00€)</div>
+        </div>
+        <div class="p-2 bg-white rounded-xl border border-slate-200/60">
+          <div class="text-[10px] text-slate-500 font-medium">Centre ALSH</div>
+          <div id="prevCentre" class="text-base font-bold text-slate-800">0 j</div>
+        </div>
+        <div class="p-2 bg-slate-100 rounded-xl border border-slate-200/60">
+          <div class="text-[10px] text-slate-600 font-medium">Total facturé</div>
+          <div id="prevCout" class="text-base font-bold text-slate-900">0,00 €</div>
         </div>
       </div>
     </div>
@@ -396,20 +425,16 @@
       }
     });
 
-    function actualiserAffichage() {
-      const qf = getQFActuel();
-      const tarifs = BAREMES_PASSAGE[qf] || BAREMES_PASSAGE["QF compris entre 916 et 1215"];
-      const selectedMonth = document.getElementById('filtreMois').value;
-
+    function calculerBilanMois(cleMois, tarifs) {
       let totRepas = 0;
       let joursGarderie = 0;
       let totJoursCentre = 0;
       let coutCantine = 0;
       let coutCentre = 0;
 
-      const itemsMois = records.filter(r => r.date && r.date.startsWith(selectedMonth));
+      const items = records.filter(r => r.date && r.date.startsWith(cleMois));
 
-      itemsMois.forEach(r => {
+      items.forEach(r => {
         if (r.cantine) { 
           totRepas++; 
           coutCantine += tarifs.cantine; 
@@ -427,7 +452,6 @@
         }
       });
 
-      // Calcul forfaitaire municipal garderie
       let coutGarderie = 0;
       if (joursGarderie === 1) coutGarderie = 0.00;
       else if (joursGarderie >= 2 && joursGarderie <= 5) coutGarderie = 6.04;
@@ -435,18 +459,45 @@
 
       const coutTotal = coutCantine + coutGarderie + coutCentre;
 
-      document.getElementById('statRepas').innerText = totRepas;
-      document.getElementById('statGarderie').innerText = `${joursGarderie} j (${coutGarderie.toFixed(2)}€)`;
-      document.getElementById('statCentre').innerText = `${totJoursCentre} j`;
-      document.getElementById('statCout').innerText = coutTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+      return { totRepas, joursGarderie, coutGarderie, totJoursCentre, coutTotal, items };
+    }
 
+    function actualiserAffichage() {
+      const qf = getQFActuel();
+      const tarifs = BAREMES_PASSAGE[qf] || BAREMES_PASSAGE["QF compris entre 916 et 1215"];
+      const selectedMonth = document.getElementById('filtreMois').value;
+
+      // 1. Bilan du mois en cours sélectionné
+      const bilanActuel = calculerBilanMois(selectedMonth, tarifs);
+
+      document.getElementById('statRepas').innerText = bilanActuel.totRepas;
+      document.getElementById('statGarderie').innerText = `${bilanActuel.joursGarderie} j (${bilanActuel.coutGarderie.toFixed(2)}€)`;
+      document.getElementById('statCentre').innerText = `${bilanActuel.totJoursCentre} j`;
+      document.getElementById('statCout').innerText = bilanActuel.coutTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+
+      // 2. Bilan du mois précédent
+      const [annee, mois] = selectedMonth.split('-').map(Number);
+      const datePrec = new Date(annee, mois - 2, 1);
+      const cleMoisPrec = `${datePrec.getFullYear()}-${String(datePrec.getMonth() + 1).padStart(2, '0')}`;
+      const labelMoisPrec = datePrec.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+
+      document.getElementById('labelMoisPrecedent').innerText = labelMoisPrec;
+
+      const bilanPrec = calculerBilanMois(cleMoisPrec, tarifs);
+
+      document.getElementById('prevRepas').innerText = bilanPrec.totRepas;
+      document.getElementById('prevGarderie').innerText = `${bilanPrec.joursGarderie} j (${bilanPrec.coutGarderie.toFixed(2)}€)`;
+      document.getElementById('prevCentre').innerText = `${bilanPrec.totJoursCentre} j`;
+      document.getElementById('prevCout').innerText = bilanPrec.coutTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+
+      // 3. Historique détaillé du mois sélectionné
       const container = document.getElementById('historiqueList');
-      if (itemsMois.length === 0) {
+      if (bilanActuel.items.length === 0) {
         container.innerHTML = '<div class="py-4 text-center text-slate-400">Aucune donnée pour ce mois.</div>';
         return;
       }
 
-      container.innerHTML = itemsMois.map(r => `
+      container.innerHTML = bilanActuel.items.map(r => `
         <div class="pt-2 pb-1 flex justify-between items-start">
           <div>
             <div class="font-bold text-slate-800">${formaterDateFr(r.date)} <span class="text-[10px] font-normal text-slate-500">(${r.periode})</span></div>
