@@ -10,9 +10,10 @@
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans pb-12 select-none">
 
+  <!-- Notification Toast -->
   <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 opacity-0 pointer-events-none px-4 py-2 rounded-lg text-xs font-semibold shadow-lg text-white"></div>
 
-  <!-- En-tête avec QF -->
+  <!-- En-tête avec choix de QF -->
   <header class="bg-blue-600 text-white p-4 sticky top-0 shadow-md z-10 space-y-2">
     <div class="flex justify-between items-center">
       <div>
@@ -29,7 +30,7 @@
       </div>
     </div>
 
-    <!-- Sélecteur de QF municipal -->
+    <!-- Sélecteur Quotient Familial Municipal -->
     <div class="bg-blue-700/80 p-2 rounded-xl flex items-center justify-between text-xs">
       <span class="font-medium text-blue-100">Tranche QF :</span>
       <select id="selectQF" onchange="changerQF()" class="bg-white text-slate-800 font-semibold rounded-lg px-2 py-1 text-xs outline-none max-w-[210px] truncate">
@@ -58,7 +59,7 @@
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Date</label>
-            <input type="date" id="dateInput" required class="w-full bg-slate-50 border rounded-lg p-2 text-sm">
+            <input type="date" id="dateInput" required class="w-full bg-slate-50 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500">
           </div>
           <div>
             <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Période</label>
@@ -70,6 +71,7 @@
           </div>
         </div>
 
+        <!-- Cantine scolaire (indépendante) -->
         <label class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border cursor-pointer active:bg-slate-100">
           <span class="text-sm font-semibold text-slate-700">Repas cantine scolaire</span>
           <input type="checkbox" id="cantineInput" class="w-5 h-5 accent-blue-600 rounded">
@@ -123,23 +125,32 @@
           </div>
         </div>
 
-     <!-- Accueil de Loisirs Rosette -->
-<div class="p-3 bg-slate-50 rounded-xl border space-y-2">
-  <span class="text-xs font-bold text-slate-600 uppercase block">Accueil de Loisirs (Rosette)</span>
-  
-  <select id="centrePresence" onchange="gererAffichageRepasCentre()" class="w-full bg-white border rounded-lg p-2 text-sm">
-    <option value="Aucun">Aucun</option>
-    <option value="Journée entière">Journée entière (repas inclus)</option>
-    <option value="Demi-journée matin">Demi-journée matin</option>
-    <option value="Demi-journée après-midi">Demi-journée après-midi</option>
-  </select>
+        <!-- Centre Rosette avec repas dédié -->
+        <div class="p-3 bg-slate-50 rounded-xl border space-y-2">
+          <span class="text-xs font-bold text-slate-600 uppercase block">Accueil de Loisirs (Rosette)</span>
+          <select id="centrePresence" onchange="gererAffichageRepasCentre()" class="w-full bg-white border rounded-lg p-2 text-sm">
+            <option value="Aucun">Aucun</option>
+            <option value="Journée entière">Journée entière (repas inclus)</option>
+            <option value="Demi-journée matin">Demi-journée matin</option>
+            <option value="Demi-journée après-midi">Demi-journée après-midi</option>
+          </select>
+          
+          <label class="flex items-center justify-between pt-1 cursor-pointer">
+            <span class="text-xs font-medium text-slate-700">Repas midi pris au centre</span>
+            <input type="checkbox" id="centreRepasInput" class="w-4 h-4 accent-blue-600 rounded">
+          </label>
+        </div>
 
-  <!-- Option repas spécifique au centre -->
-  <label id="blocRepasCentre" class="flex items-center justify-between pt-1 cursor-pointer">
-    <span class="text-xs font-medium text-slate-700">Repas midi pris au centre</span>
-    <input type="checkbox" id="centreRepasInput" class="w-4 h-4 accent-blue-600 rounded">
-  </label>
-</div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Notes / Remarques</label>
+          <input type="text" id="notesInput" placeholder="Ex : retard, sortie scolaire..." class="w-full bg-slate-50 border rounded-lg p-2 text-sm">
+        </div>
+
+        <button type="submit" id="btnSubmit" class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm shadow transition">
+          Enregistrer la journée
+        </button>
+      </form>
+    </div>
 
     <!-- Bilan du mois -->
     <div class="bg-white rounded-2xl shadow-sm p-4 border border-slate-200 space-y-3">
@@ -179,7 +190,7 @@
   <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6mlcRtCjG0tR8dsmO1IpHlan4F-gz1P3NYx3u5jWJ9-TUrPLDwyGsU9JhoxoJgKHUaQ/exec";
 
-    // Barème officiel Passageois par tranche QF
+    // Grille municipale officielle du Passage
     const BAREMES_PASSAGE = {
       "QF inférieur à 300":           { garderie: 7.11,  cantine: 1.00, centreJour: 2.35, centreDemi: 1.20 },
       "QF compris entre 300 et 480":  { garderie: 8.47,  cantine: 1.00, centreJour: 2.45, centreDemi: 1.25 },
@@ -200,7 +211,17 @@
       const qf = document.getElementById('selectQF').value;
       localStorage.setItem('perisco_qf', qf);
       actualiserAffichage();
-      showToast('Barème QF appliqué : ' + qf);
+      showToast('Barème QF appliqué');
+    }
+
+    function gererAffichageRepasCentre() {
+      const presence = document.getElementById('centrePresence').value;
+      const repasCheckbox = document.getElementById('centreRepasInput');
+      if (presence === "Journée entière") {
+        repasCheckbox.checked = true;
+      } else if (presence === "Aucun") {
+        repasCheckbox.checked = false;
+      }
     }
 
     function initAujourdhui() {
@@ -274,6 +295,7 @@
         document.getElementById('soirArrivee').value = item.soirArr || '';
         document.getElementById('soirDepart').value = item.soirDep || '';
         document.getElementById('centrePresence').value = item.centrePresence || 'Aucun';
+        document.getElementById('centreRepasInput').checked = !!item.centreRepas;
         document.getElementById('notesInput').value = item.notes || '';
       } else {
         document.getElementById('cantineInput').checked = false;
@@ -282,6 +304,7 @@
         document.getElementById('soirArrivee').value = '';
         document.getElementById('soirDepart').value = '';
         document.getElementById('centrePresence').value = 'Aucun';
+        document.getElementById('centreRepasInput').checked = false;
         document.getElementById('notesInput').value = '';
       }
       majDureesDirect();
@@ -333,22 +356,23 @@
       const durM = getDureeMinutes(mArr, mDep);
       const durS = getDureeMinutes(sArr, sDep);
       const qfChoisi = document.getElementById('selectQF').value;
+      const centrePres = document.getElementById('centrePresence').value;
 
-     const payload = {
-  date: date,
-  qfSelectionne: qfChoisi,
-  periode: document.getElementById('periodeInput').value,
-  cantine: document.getElementById('cantineInput').checked, // Uniquement cantine scolaire
-  matinArr: mArr || '',
-  matinDep: mDep || '',
-  dureeMatin: durM,
-  soirArr: sArr || '',
-  soirDep: sDep || '',
-  dureeSoir: durS,
-  centrePresence: document.getElementById('centrePresence').value,
-  centreRepas: document.getElementById('centreRepasInput').checked, // Dédié au centre !
-  notes: document.getElementById('notesInput').value.trim()
-};
+      const payload = {
+        date: date,
+        qfSelectionne: qfChoisi,
+        periode: document.getElementById('periodeInput').value,
+        cantine: document.getElementById('cantineInput').checked,
+        matinArr: mArr || '',
+        matinDep: mDep || '',
+        dureeMatin: durM,
+        soirArr: sArr || '',
+        soirDep: sDep || '',
+        dureeSoir: durS,
+        centrePresence: centrePres,
+        centreRepas: (centrePres === "Journée entière") ? true : document.getElementById('centreRepasInput').checked,
+        notes: document.getElementById('notesInput').value.trim()
+      };
 
       const idx = records.findIndex(r => r.date === date);
       if (idx >= 0) records[idx] = payload;
@@ -403,10 +427,10 @@
         }
       });
 
-      // Règle municipale garderie :
+      // Calcul forfaitaire municipal garderie
       let coutGarderie = 0;
       if (joursGarderie === 1) coutGarderie = 0.00;
-      else if (joursGarderie > 1 && joursGarderie <= 5) coutGarderie = 6.04;
+      else if (joursGarderie >= 2 && joursGarderie <= 5) coutGarderie = 6.04;
       else if (joursGarderie > 5) coutGarderie = tarifs.garderie;
 
       const coutTotal = coutCantine + coutGarderie + coutCentre;
@@ -455,6 +479,7 @@
         "Soir Arrivée": r.soirArr || "",
         "Soir Départ": r.soirDep || "",
         "Centre Présence": r.centrePresence,
+        "Centre Repas": r.centreRepas ? "Oui" : "Non",
         "Remarques": r.notes || ""
       }));
 
@@ -464,7 +489,6 @@
       XLSX.writeFile(wb, `Périscolaire_${document.getElementById('filtreMois').value}.xlsx`);
     }
 
-    // Démarrage
     const now = new Date();
     const y = now.getFullYear();
     const m = String(now.getMonth() + 1).padStart(2, '0');
@@ -472,17 +496,6 @@
     document.getElementById('selectQF').value = getQFActuel();
     initAujourdhui();
     actualiserAffichage();
-function gererAffichageRepasCentre() {
-  const presence = document.getElementById('centrePresence').value;
-  const repasCheckbox = document.getElementById('centreRepasInput');
-
-  if (presence === "Journée entière") {
-    // Automatique : une journée entière comprend toujours le repas
-    repasCheckbox.checked = true;
-  } else if (presence === "Aucun") {
-    repasCheckbox.checked = false;
-  }
-}
   </script>
 </body>
 </html>
