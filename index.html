@@ -123,27 +123,23 @@
           </div>
         </div>
 
-        <!-- ALSH Rosette -->
-        <div class="p-3 bg-slate-50 rounded-xl border space-y-2">
-          <span class="text-xs font-bold text-slate-600 uppercase block">Accueil de Loisirs (Rosette)</span>
-          <select id="centrePresence" class="w-full bg-white border rounded-lg p-2 text-sm">
-            <option value="Aucun">Aucun</option>
-            <option value="Journée entière">Journée entière (+ repas inclus)</option>
-            <option value="Demi-journée matin">Demi-journée matin</option>
-            <option value="Demi-journée après-midi">Demi-journée après-midi</option>
-          </select>
-        </div>
+     <!-- Accueil de Loisirs Rosette -->
+<div class="p-3 bg-slate-50 rounded-xl border space-y-2">
+  <span class="text-xs font-bold text-slate-600 uppercase block">Accueil de Loisirs (Rosette)</span>
+  
+  <select id="centrePresence" onchange="gererAffichageRepasCentre()" class="w-full bg-white border rounded-lg p-2 text-sm">
+    <option value="Aucun">Aucun</option>
+    <option value="Journée entière">Journée entière (repas inclus)</option>
+    <option value="Demi-journée matin">Demi-journée matin</option>
+    <option value="Demi-journée après-midi">Demi-journée après-midi</option>
+  </select>
 
-        <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Notes / Remarques</label>
-          <input type="text" id="notesInput" placeholder="Ex : retard, sortie scolaire..." class="w-full bg-slate-50 border rounded-lg p-2 text-sm">
-        </div>
-
-        <button type="submit" id="btnSubmit" class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm shadow transition">
-          Enregistrer la journée
-        </button>
-      </form>
-    </div>
+  <!-- Option repas spécifique au centre -->
+  <label id="blocRepasCentre" class="flex items-center justify-between pt-1 cursor-pointer">
+    <span class="text-xs font-medium text-slate-700">Repas midi pris au centre</span>
+    <input type="checkbox" id="centreRepasInput" class="w-4 h-4 accent-blue-600 rounded">
+  </label>
+</div>
 
     <!-- Bilan du mois -->
     <div class="bg-white rounded-2xl shadow-sm p-4 border border-slate-200 space-y-3">
@@ -338,21 +334,21 @@
       const durS = getDureeMinutes(sArr, sDep);
       const qfChoisi = document.getElementById('selectQF').value;
 
-      const payload = {
-        date: date,
-        qfSelectionne: qfChoisi,
-        periode: document.getElementById('periodeInput').value,
-        cantine: document.getElementById('cantineInput').checked,
-        matinArr: mArr || '',
-        matinDep: mDep || '',
-        dureeMatin: durM,
-        soirArr: sArr || '',
-        soirDep: sDep || '',
-        dureeSoir: durS,
-        centrePresence: document.getElementById('centrePresence').value,
-        centreRepas: false,
-        notes: document.getElementById('notesInput').value.trim()
-      };
+     const payload = {
+  date: date,
+  qfSelectionne: qfChoisi,
+  periode: document.getElementById('periodeInput').value,
+  cantine: document.getElementById('cantineInput').checked, // Uniquement cantine scolaire
+  matinArr: mArr || '',
+  matinDep: mDep || '',
+  dureeMatin: durM,
+  soirArr: sArr || '',
+  soirDep: sDep || '',
+  dureeSoir: durS,
+  centrePresence: document.getElementById('centrePresence').value,
+  centreRepas: document.getElementById('centreRepasInput').checked, // Dédié au centre !
+  notes: document.getElementById('notesInput').value.trim()
+};
 
       const idx = records.findIndex(r => r.date === date);
       if (idx >= 0) records[idx] = payload;
@@ -476,6 +472,17 @@
     document.getElementById('selectQF').value = getQFActuel();
     initAujourdhui();
     actualiserAffichage();
+function gererAffichageRepasCentre() {
+  const presence = document.getElementById('centrePresence').value;
+  const repasCheckbox = document.getElementById('centreRepasInput');
+
+  if (presence === "Journée entière") {
+    // Automatique : une journée entière comprend toujours le repas
+    repasCheckbox.checked = true;
+  } else if (presence === "Aucun") {
+    repasCheckbox.checked = false;
+  }
+}
   </script>
 </body>
 </html>
