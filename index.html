@@ -55,6 +55,7 @@
       </h2>
 
       <form id="periscoForm" class="space-y-4">
+        
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Date</label>
@@ -151,16 +152,24 @@
       </form>
     </div>
 
-    <!-- 1. Bilan estimé du mois (En Accordéon) -->
+    <!-- 1. Bilan estimé du mois (En Accordéon avec bouton calendrier dédié) -->
     <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-between gap-2">
         <button type="button" onclick="toggleSection('contenuBilanMois', 'flecheBilanMois')" class="flex items-center space-x-2 text-left focus:outline-none flex-1">
-          <span class="font-bold text-slate-800 text-sm">📊 Bilan estimé du mois</span>
+          <span class="font-bold text-slate-800 text-sm">📊 Bilan estimé</span>
           <span id="flecheBilanMois" class="text-slate-400 text-xs transition-transform duration-200 transform rotate-180">▼</span>
         </button>
-        <input type="month" id="filtreMois" onchange="actualiserAffichage()" class="bg-slate-50 border rounded-lg p-1 text-xs font-semibold text-slate-700 ml-2">
+        
+        <!-- Sélecteur de mois avec bouton calendrier -->
+        <div class="flex items-center bg-slate-50 border border-slate-300 rounded-xl px-2 py-1 shadow-sm focus-within:ring-2 focus-within:ring-blue-500">
+          <input type="month" id="filtreMois" onchange="actualiserAffichage()" class="bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer">
+          <button type="button" onclick="ouvrirCalendrier('filtreMois')" title="Choisir le mois" class="text-sm ml-1 text-slate-600 hover:text-blue-600 active:scale-95 transition">
+            📅
+          </button>
+        </div>
       </div>
       
+      <!-- Contenu ouvert par défaut -->
       <div id="contenuBilanMois" class="space-y-3 pt-1">
         <div class="grid grid-cols-2 gap-2 text-center">
           <div class="p-2.5 bg-blue-50 rounded-xl">
@@ -183,18 +192,24 @@
       </div>
     </div>
 
-    <!-- 2. Synthèse mensuelle antérieure consultable (En Accordéon) -->
+    <!-- 2. Synthèse mensuelle archivée consultable (En Accordéon avec bouton calendrier dédié) -->
     <div class="bg-slate-50 rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-between gap-2">
         <button type="button" onclick="toggleSection('contenuSyntheseArchive', 'flecheSyntheseArchive')" class="flex items-center space-x-2 text-left focus:outline-none flex-1">
-          <span class="font-bold text-slate-700 text-xs sm:text-sm">📅 Synthèse mois archivé</span>
+          <span class="font-bold text-slate-700 text-xs sm:text-sm">📁 Mois archivé</span>
           <span id="flecheSyntheseArchive" class="text-slate-400 text-xs transition-transform duration-200">▼</span>
         </button>
-        <!-- Sélecteur du mois à consulter -->
-        <input type="month" id="filtreMoisArchive" onchange="actualiserSyntheseArchive()" class="bg-white border rounded-lg p-1 text-xs font-semibold text-slate-700 ml-2">
+
+        <!-- Sélecteur du mois archivé avec bouton calendrier -->
+        <div class="flex items-center bg-white border border-slate-300 rounded-xl px-2 py-1 shadow-sm focus-within:ring-2 focus-within:ring-blue-500">
+          <input type="month" id="filtreMoisArchive" onchange="actualiserSyntheseArchive()" class="bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer">
+          <button type="button" onclick="ouvrirCalendrier('filtreMoisArchive')" title="Choisir le mois archivé" class="text-sm ml-1 text-slate-600 hover:text-blue-600 active:scale-95 transition">
+            📅
+          </button>
+        </div>
       </div>
       
-      <!-- Masqué par défaut -->
+      <!-- Contenu masqué par défaut -->
       <div id="contenuSyntheseArchive" class="hidden space-y-3 pt-1">
         <div class="grid grid-cols-2 gap-2 text-center">
           <div class="p-2 bg-white rounded-xl border border-slate-200/60">
@@ -239,6 +254,7 @@
   <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6mlcRtCjG0tR8dsmO1IpHlan4F-gz1P3NYx3u5jWJ9-TUrPLDwyGsU9JhoxoJgKHUaQ/exec";
 
+    // Grille municipale officielle du Passage
     const BAREMES_PASSAGE = {
       "QF inférieur à 300":           { garderie: 7.11,  cantine: 1.00, centreJour: 2.35, centreDemi: 1.20 },
       "QF compris entre 300 et 480":  { garderie: 8.47,  cantine: 1.00, centreJour: 2.45, centreDemi: 1.25 },
@@ -272,7 +288,7 @@
       }
     }
 
-    // Gestionnaire universel pour tous les accordéons
+    // Gestionnaire universel pour les accordéons
     function toggleSection(idContenu, idFleche) {
       const contenu = document.getElementById(idContenu);
       const fleche = document.getElementById(idFleche);
@@ -284,6 +300,18 @@
       } else {
         contenu.classList.add('hidden');
         fleche.style.transform = 'rotate(0deg)';
+      }
+    }
+
+    // Ouvre le sélecteur natif au clic sur le bouton calendrier
+    function ouvrirCalendrier(inputId) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      if (typeof input.showPicker === 'function') {
+        input.showPicker();
+      } else {
+        input.focus();
+        input.click();
       }
     }
 
@@ -446,6 +474,7 @@
       if ((mArr && !mDep) || (!mArr && mDep)) return showToast('Garderie matin incomplète', true);
       if ((sArr && !sDep) || (!sArr && sDep)) return showToast('Garderie soir incomplète', true);
 
+      // --- GARDE-FOU ANTI-ÉCRASEMENT ---
       const dateExiste = records.some(r => r.date === date);
       if (dateExiste) {
         const dateFr = formaterDateFr(date);
@@ -568,32 +597,24 @@
       // 1. Bilan du mois en cours sélectionné
       const bilanActuel = calculerBilanMois(selectedMonth, tarifs);
 
-      // Cantine : nb repas + montant
       document.getElementById('statRepas').innerText = `${bilanActuel.totRepas} (${bilanActuel.coutCantine.toFixed(2)}€)`;
-      
-      // Garderie : nb jours + forfait
       document.getElementById('statGarderie').innerText = `${bilanActuel.joursGarderie} j (${bilanActuel.coutGarderie.toFixed(2)}€)`;
-      
-      // Centre ALSH : nb jours + montant
       document.getElementById('statCentre').innerText = `${bilanActuel.totJoursCentre} j (${bilanActuel.coutCentre.toFixed(2)}€)`;
-      
-      // Total prévisionnel
       document.getElementById('statCout').innerText = bilanActuel.coutTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
-      // 2. Initialisation ou mise à jour du sélecteur de mois archivé
+      // 2. Plafonnement et calcul du sélecteur de mois archivé
       const [annee, mois] = selectedMonth.split('-').map(Number);
       const datePrec = new Date(annee, mois - 2, 1);
       const cleMoisPrec = `${datePrec.getFullYear()}-${String(datePrec.getMonth() + 1).padStart(2, '0')}`;
       
       const inputArchive = document.getElementById('filtreMoisArchive');
-      // Plafonne la consultation aux mois strictement antérieurs au mois en cours
       inputArchive.max = cleMoisPrec;
       if (!inputArchive.value || inputArchive.value >= selectedMonth) {
         inputArchive.value = cleMoisPrec;
       }
       actualiserSyntheseArchive();
 
-      // 3. Mise à jour de la liste dans le volet déroulant
+      // 3. Mise à jour de la liste
       const container = document.getElementById('historiqueList');
       const compteurElem = document.getElementById('compteurLignesDetails');
 
@@ -661,7 +682,7 @@
     initAujourdhui();
     actualiserAffichage();
 
-    // Synchronisation en arrière-plan
+    // Synchronisation au démarrage
     synchroniserDepuisSheets();
   </script>
 </body>
