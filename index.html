@@ -55,7 +55,6 @@
       </h2>
 
       <form id="periscoForm" class="space-y-4">
-        
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Date</label>
@@ -152,65 +151,75 @@
       </form>
     </div>
 
-    <!-- Bilan du mois sélectionné -->
+    <!-- 1. Bilan estimé du mois (En Accordéon) -->
     <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
-      <div class="flex justify-between items-center">
-        <h2 class="font-bold text-slate-800 text-sm">Bilan estimé du mois</h2>
-        <input type="month" id="filtreMois" onchange="actualiserAffichage()" class="bg-slate-50 border rounded-lg p-1 text-xs font-semibold text-slate-700">
+      <div class="flex items-center justify-between">
+        <button type="button" onclick="toggleSection('contenuBilanMois', 'flecheBilanMois')" class="flex items-center space-x-2 text-left focus:outline-none flex-1">
+          <span class="font-bold text-slate-800 text-sm">📊 Bilan estimé du mois</span>
+          <span id="flecheBilanMois" class="text-slate-400 text-xs transition-transform duration-200 transform rotate-180">▼</span>
+        </button>
+        <input type="month" id="filtreMois" onchange="actualiserAffichage()" class="bg-slate-50 border rounded-lg p-1 text-xs font-semibold text-slate-700 ml-2">
       </div>
       
-      <div class="grid grid-cols-2 gap-2 text-center">
-        <div class="p-2.5 bg-blue-50 rounded-xl">
-          <div class="text-[11px] text-blue-600 font-semibold">Cantine</div>
-          <div id="statRepas" class="text-lg font-black text-blue-950">0</div>
-        </div>
-        <div class="p-2.5 bg-blue-50 rounded-xl">
-          <div class="text-[11px] text-blue-600 font-semibold">Garderie</div>
-          <div id="statGarderie" class="text-lg font-black text-blue-950">0 j (0.00€)</div>
-        </div>
-        <div class="p-2.5 bg-slate-50 rounded-xl">
-          <div class="text-[11px] text-slate-500 font-semibold">Centre ALSH</div>
-          <div id="statCentre" class="text-lg font-black text-slate-800">0 j</div>
-        </div>
-        <div class="p-2.5 bg-emerald-50 rounded-xl">
-          <div class="text-[11px] text-emerald-700 font-semibold">Total estimé</div>
-          <div id="statCout" class="text-lg font-black text-emerald-800">0,00 €</div>
+      <div id="contenuBilanMois" class="space-y-3 pt-1">
+        <div class="grid grid-cols-2 gap-2 text-center">
+          <div class="p-2.5 bg-blue-50 rounded-xl">
+            <div class="text-[11px] text-blue-600 font-semibold">Cantine</div>
+            <div id="statRepas" class="text-base font-black text-blue-950">0</div>
+          </div>
+          <div class="p-2.5 bg-blue-50 rounded-xl">
+            <div class="text-[11px] text-blue-600 font-semibold">Garderie</div>
+            <div id="statGarderie" class="text-base font-black text-blue-950">0 j (0.00€)</div>
+          </div>
+          <div class="p-2.5 bg-slate-50 rounded-xl">
+            <div class="text-[11px] text-slate-500 font-semibold">Centre ALSH</div>
+            <div id="statCentre" class="text-base font-black text-slate-800">0 j</div>
+          </div>
+          <div class="p-2.5 bg-emerald-50 rounded-xl">
+            <div class="text-[11px] text-emerald-700 font-semibold">Total estimé</div>
+            <div id="statCout" class="text-lg font-black text-emerald-800">0,00 €</div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Synthèse du mois précédent -->
+    <!-- 2. Synthèse mensuelle antérieure consultable (En Accordéon) -->
     <div class="bg-slate-50 rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
-      <div class="flex justify-between items-center">
-        <h2 class="font-bold text-slate-700 text-xs flex items-center space-x-1">
-          <span>📅 Synthèse du mois précédent :</span>
-          <span id="labelMoisPrecedent" class="text-blue-700 font-semibold capitalize"></span>
-        </h2>
+      <div class="flex items-center justify-between">
+        <button type="button" onclick="toggleSection('contenuSyntheseArchive', 'flecheSyntheseArchive')" class="flex items-center space-x-2 text-left focus:outline-none flex-1">
+          <span class="font-bold text-slate-700 text-xs sm:text-sm">📅 Synthèse mois archivé</span>
+          <span id="flecheSyntheseArchive" class="text-slate-400 text-xs transition-transform duration-200">▼</span>
+        </button>
+        <!-- Sélecteur du mois à consulter -->
+        <input type="month" id="filtreMoisArchive" onchange="actualiserSyntheseArchive()" class="bg-white border rounded-lg p-1 text-xs font-semibold text-slate-700 ml-2">
       </div>
       
-      <div class="grid grid-cols-2 gap-2 text-center">
-        <div class="p-2 bg-white rounded-xl border border-slate-200/60">
-          <div class="text-[10px] text-slate-500 font-medium">Cantine</div>
-          <div id="prevRepas" class="text-base font-bold text-slate-800">0</div>
-        </div>
-        <div class="p-2 bg-white rounded-xl border border-slate-200/60">
-          <div class="text-[10px] text-slate-500 font-medium">Garderie</div>
-          <div id="prevGarderie" class="text-base font-bold text-slate-800">0 j (0.00€)</div>
-        </div>
-        <div class="p-2 bg-white rounded-xl border border-slate-200/60">
-          <div class="text-[10px] text-slate-500 font-medium">Centre ALSH</div>
-          <div id="prevCentre" class="text-base font-bold text-slate-800">0 j</div>
-        </div>
-        <div class="p-2 bg-slate-100 rounded-xl border border-slate-200/60">
-          <div class="text-[10px] text-slate-600 font-medium">Total facturé</div>
-          <div id="prevCout" class="text-base font-bold text-slate-900">0,00 €</div>
+      <!-- Masqué par défaut -->
+      <div id="contenuSyntheseArchive" class="hidden space-y-3 pt-1">
+        <div class="grid grid-cols-2 gap-2 text-center">
+          <div class="p-2 bg-white rounded-xl border border-slate-200/60">
+            <div class="text-[10px] text-slate-500 font-medium">Cantine</div>
+            <div id="prevRepas" class="text-sm sm:text-base font-bold text-slate-800">0</div>
+          </div>
+          <div class="p-2 bg-white rounded-xl border border-slate-200/60">
+            <div class="text-[10px] text-slate-500 font-medium">Garderie</div>
+            <div id="prevGarderie" class="text-sm sm:text-base font-bold text-slate-800">0 j (0.00€)</div>
+          </div>
+          <div class="p-2 bg-white rounded-xl border border-slate-200/60">
+            <div class="text-[10px] text-slate-500 font-medium">Centre ALSH</div>
+            <div id="prevCentre" class="text-sm sm:text-base font-bold text-slate-800">0 j</div>
+          </div>
+          <div class="p-2 bg-slate-100 rounded-xl border border-slate-200/60">
+            <div class="text-[10px] text-slate-600 font-medium">Total facturé</div>
+            <div id="prevCout" class="text-base font-bold text-slate-900">0,00 €</div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Volet déroulant : Détail des journées -->
+    <!-- 3. Volet déroulant : Détail des journées -->
     <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-      <button type="button" onclick="toggleDetails()" class="w-full flex items-center justify-between text-left focus:outline-none">
+      <button type="button" onclick="toggleSection('contenuDetails', 'flecheDetails')" class="w-full flex items-center justify-between text-left focus:outline-none">
         <span class="flex items-center space-x-2 font-bold text-slate-800 text-xs sm:text-sm">
           <span>📋</span>
           <span>Détail des journées du mois</span>
@@ -263,9 +272,10 @@
       }
     }
 
-    function toggleDetails() {
-      const contenu = document.getElementById('contenuDetails');
-      const fleche = document.getElementById('flecheDetails');
+    // Gestionnaire universel pour tous les accordéons
+    function toggleSection(idContenu, idFleche) {
+      const contenu = document.getElementById(idContenu);
+      const fleche = document.getElementById(idFleche);
       const estMasque = contenu.classList.contains('hidden');
 
       if (estMasque) {
@@ -436,7 +446,6 @@
       if ((mArr && !mDep) || (!mArr && mDep)) return showToast('Garderie matin incomplète', true);
       if ((sArr && !sDep) || (!sArr && sDep)) return showToast('Garderie soir incomplète', true);
 
-      // --- GARDE-FOU ANTI-ÉCRASEMENT ---
       const dateExiste = records.some(r => r.date === date);
       if (dateExiste) {
         const dateFr = formaterDateFr(date);
@@ -526,7 +535,29 @@
 
       const coutTotal = coutCantine + coutGarderie + coutCentre;
 
-      return { totRepas, joursGarderie, coutGarderie, totJoursCentre, coutTotal, items };
+      return { totRepas, coutCantine, joursGarderie, coutGarderie, totJoursCentre, coutCentre, coutTotal, items };
+    }
+
+    function actualiserSyntheseArchive() {
+      const qf = getQFActuel();
+      const tarifs = BAREMES_PASSAGE[qf] || BAREMES_PASSAGE["QF compris entre 916 et 1215"];
+      const moisArchive = document.getElementById('filtreMoisArchive').value;
+
+      if (!moisArchive) return;
+
+      const bilanArchive = calculerBilanMois(moisArchive, tarifs);
+
+      // Affichage cantine avec montant
+      document.getElementById('prevRepas').innerText = `${bilanArchive.totRepas} (${bilanArchive.coutCantine.toFixed(2)}€)`;
+      
+      // Affichage garderie avec montant
+      document.getElementById('prevGarderie').innerText = `${bilanArchive.joursGarderie} j (${bilanArchive.coutGarderie.toFixed(2)}€)`;
+      
+      // Affichage centre avec montant
+      document.getElementById('prevCentre').innerText = `${bilanArchive.totJoursCentre} j (${bilanArchive.coutCentre.toFixed(2)}€)`;
+      
+      // Total facturé
+      document.getElementById('prevCout').innerText = bilanArchive.coutTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
     }
 
     function actualiserAffichage() {
@@ -534,30 +565,35 @@
       const tarifs = BAREMES_PASSAGE[qf] || BAREMES_PASSAGE["QF compris entre 916 et 1215"];
       const selectedMonth = document.getElementById('filtreMois').value;
 
-      // 1. Mois en cours sélectionné
+      // 1. Bilan du mois en cours sélectionné
       const bilanActuel = calculerBilanMois(selectedMonth, tarifs);
 
-      document.getElementById('statRepas').innerText = bilanActuel.totRepas;
+      // Cantine : nb repas + montant
+      document.getElementById('statRepas').innerText = `${bilanActuel.totRepas} (${bilanActuel.coutCantine.toFixed(2)}€)`;
+      
+      // Garderie : nb jours + forfait
       document.getElementById('statGarderie').innerText = `${bilanActuel.joursGarderie} j (${bilanActuel.coutGarderie.toFixed(2)}€)`;
-      document.getElementById('statCentre').innerText = `${bilanActuel.totJoursCentre} j`;
+      
+      // Centre ALSH : nb jours + montant
+      document.getElementById('statCentre').innerText = `${bilanActuel.totJoursCentre} j (${bilanActuel.coutCentre.toFixed(2)}€)`;
+      
+      // Total prévisionnel
       document.getElementById('statCout').innerText = bilanActuel.coutTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
-      // 2. Mois précédent
+      // 2. Initialisation ou mise à jour du sélecteur de mois archivé
       const [annee, mois] = selectedMonth.split('-').map(Number);
       const datePrec = new Date(annee, mois - 2, 1);
       const cleMoisPrec = `${datePrec.getFullYear()}-${String(datePrec.getMonth() + 1).padStart(2, '0')}`;
-      const labelMoisPrec = datePrec.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+      
+      const inputArchive = document.getElementById('filtreMoisArchive');
+      // Plafonne la consultation aux mois strictement antérieurs au mois en cours
+      inputArchive.max = cleMoisPrec;
+      if (!inputArchive.value || inputArchive.value >= selectedMonth) {
+        inputArchive.value = cleMoisPrec;
+      }
+      actualiserSyntheseArchive();
 
-      document.getElementById('labelMoisPrecedent').innerText = labelMoisPrec;
-
-      const bilanPrec = calculerBilanMois(cleMoisPrec, tarifs);
-
-      document.getElementById('prevRepas').innerText = bilanPrec.totRepas;
-      document.getElementById('prevGarderie').innerText = `${bilanPrec.joursGarderie} j (${bilanPrec.coutGarderie.toFixed(2)}€)`;
-      document.getElementById('prevCentre').innerText = `${bilanPrec.totJoursCentre} j`;
-      document.getElementById('prevCout').innerText = bilanPrec.coutTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-
-      // 3. Mise à jour de la liste
+      // 3. Mise à jour de la liste dans le volet déroulant
       const container = document.getElementById('historiqueList');
       const compteurElem = document.getElementById('compteurLignesDetails');
 
@@ -625,7 +661,7 @@
     initAujourdhui();
     actualiserAffichage();
 
-    // Synchronisation en tâche de fond au démarrage
+    // Synchronisation en arrière-plan
     synchroniserDepuisSheets();
   </script>
 </body>
