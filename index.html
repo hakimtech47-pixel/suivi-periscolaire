@@ -10,21 +10,49 @@
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans pb-12 select-none">
 
-  <!-- Notification Toast -->
+  <!-- Toast Notification -->
   <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 opacity-0 pointer-events-none px-4 py-2 rounded-lg text-xs font-semibold shadow-lg text-white"></div>
 
-  <!-- En-tête avec choix de QF -->
+  <!-- Modal Configuration Compte Parent (Google Sheets) -->
+  <div id="modalConfig" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-bold text-slate-800 text-sm">⚙️ Connexion Google Sheets</h3>
+        <button type="button" onclick="fermerModalConfig()" class="text-slate-400 hover:text-slate-700 text-lg leading-none">&times;</button>
+      </div>
+      <p class="text-xs text-slate-600 leading-relaxed">
+        Pour synchroniser vos données avec votre propre Google Drive, collez l'URL de votre application Web Google Apps Script :
+      </p>
+      <div>
+        <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">URL Web App personnelle</label>
+        <input type="url" id="inputUrlScript" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-50 border rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="flex items-center space-x-2 pt-2">
+        <button type="button" onclick="sauvegarderConfig()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-xl text-xs transition">
+          Enregistrer
+        </button>
+        <button type="button" onclick="supprimerConfig()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold py-2 px-3 rounded-xl text-xs border border-rose-200 transition">
+          Déconnecter
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- En-tête -->
   <header class="bg-blue-600 text-white p-4 sticky top-0 shadow-md z-10 space-y-2">
     <div class="flex justify-between items-center">
       <div>
         <h1 class="text-base font-bold leading-tight">Périscolaire Le Passage</h1>
         <p class="text-[11px] text-blue-100" id="currentDateDisplay"></p>
       </div>
-      <div class="flex items-center space-x-2">
-        <button type="button" onclick="synchroniserDepuisSheets()" title="Synchroniser" class="bg-blue-700 hover:bg-blue-800 active:scale-95 text-xs p-2 rounded-lg border border-blue-400">
+      <div class="flex items-center space-x-1.5">
+        <button type="button" onclick="ouvrirModalConfig()" title="Paramètres de synchronisation" class="bg-blue-700 hover:bg-blue-800 active:scale-95 text-xs p-2 rounded-lg border border-blue-400">
+          ⚙️
+        </button>
+        <button type="button" id="btnSync" onclick="synchroniserDepuisSheets()" title="Synchroniser avec Google Sheets" class="bg-blue-700 hover:bg-blue-800 active:scale-95 text-xs p-2 rounded-lg border border-blue-400">
           🔄
         </button>
-        <button type="button" onclick="exporterExcel()" class="bg-blue-700 hover:bg-blue-800 active:scale-95 text-xs px-2.5 py-1.5 rounded-lg border border-blue-400 font-medium">
+        <button type="button" onclick="exporterExcel()" title="Exporter en Excel" class="bg-blue-700 hover:bg-blue-800 active:scale-95 text-xs px-2.5 py-1.5 rounded-lg border border-blue-400 font-medium">
           .xlsx
         </button>
       </div>
@@ -55,7 +83,6 @@
       </h2>
 
       <form id="periscoForm" class="space-y-4">
-        
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Date</label>
@@ -152,7 +179,7 @@
       </form>
     </div>
 
-    <!-- 1. Bilan estimé du mois (En Accordéon avec bouton calendrier dédié) -->
+    <!-- 1. Bilan estimé du mois (Accordéon avec bouton calendrier) -->
     <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
       <div class="flex items-center justify-between gap-2">
         <button type="button" onclick="toggleSection('contenuBilanMois', 'flecheBilanMois')" class="flex items-center space-x-2 text-left focus:outline-none flex-1">
@@ -160,7 +187,6 @@
           <span id="flecheBilanMois" class="text-slate-400 text-xs transition-transform duration-200 transform rotate-180">▼</span>
         </button>
         
-        <!-- Sélecteur de mois avec bouton calendrier -->
         <div class="flex items-center bg-slate-50 border border-slate-300 rounded-xl px-2 py-1 shadow-sm focus-within:ring-2 focus-within:ring-blue-500">
           <input type="month" id="filtreMois" onchange="actualiserAffichage()" class="bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer">
           <button type="button" onclick="ouvrirCalendrier('filtreMois')" title="Choisir le mois" class="text-sm ml-1 text-slate-600 hover:text-blue-600 active:scale-95 transition">
@@ -169,7 +195,6 @@
         </div>
       </div>
       
-      <!-- Contenu ouvert par défaut -->
       <div id="contenuBilanMois" class="space-y-3 pt-1">
         <div class="grid grid-cols-2 gap-2 text-center">
           <div class="p-2.5 bg-blue-50 rounded-xl">
@@ -192,7 +217,7 @@
       </div>
     </div>
 
-    <!-- 2. Synthèse mensuelle archivée consultable (En Accordéon avec bouton calendrier dédié) -->
+    <!-- 2. Synthèse mensuelle archivée (Accordéon avec bouton calendrier) -->
     <div class="bg-slate-50 rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
       <div class="flex items-center justify-between gap-2">
         <button type="button" onclick="toggleSection('contenuSyntheseArchive', 'flecheSyntheseArchive')" class="flex items-center space-x-2 text-left focus:outline-none flex-1">
@@ -200,7 +225,6 @@
           <span id="flecheSyntheseArchive" class="text-slate-400 text-xs transition-transform duration-200">▼</span>
         </button>
 
-        <!-- Sélecteur du mois archivé avec bouton calendrier -->
         <div class="flex items-center bg-white border border-slate-300 rounded-xl px-2 py-1 shadow-sm focus-within:ring-2 focus-within:ring-blue-500">
           <input type="month" id="filtreMoisArchive" onchange="actualiserSyntheseArchive()" class="bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer">
           <button type="button" onclick="ouvrirCalendrier('filtreMoisArchive')" title="Choisir le mois archivé" class="text-sm ml-1 text-slate-600 hover:text-blue-600 active:scale-95 transition">
@@ -209,7 +233,6 @@
         </div>
       </div>
       
-      <!-- Contenu masqué par défaut -->
       <div id="contenuSyntheseArchive" class="hidden space-y-3 pt-1">
         <div class="grid grid-cols-2 gap-2 text-center">
           <div class="p-2 bg-white rounded-xl border border-slate-200/60">
@@ -232,7 +255,53 @@
       </div>
     </div>
 
-    <!-- 3. Volet déroulant : Détail des journées -->
+    <!-- 3. Déclaration fiscale DGFiP (Accordéon Année civile) -->
+    <div class="bg-amber-50/60 rounded-2xl border border-amber-200 p-4 shadow-sm space-y-3">
+      <div class="flex items-center justify-between gap-2">
+        <button type="button" onclick="toggleSection('contenuFiscal', 'flecheFiscal')" class="flex items-center space-x-2 text-left focus:outline-none flex-1">
+          <span class="font-bold text-amber-950 text-xs sm:text-sm">🏛️ Déclaration fiscale (Case 7GA)</span>
+          <span id="flecheFiscal" class="text-amber-600 text-xs transition-transform duration-200">▼</span>
+        </button>
+
+        <div class="flex items-center bg-white border border-amber-300 rounded-xl px-2 py-1 shadow-sm">
+          <select id="selectAnneeFiscale" onchange="actualiserAffichageFiscal()" class="bg-transparent text-xs font-bold text-amber-900 outline-none cursor-pointer">
+            <!-- Rempli dynamiquement -->
+          </select>
+        </div>
+      </div>
+
+      <div id="contenuFiscal" class="hidden space-y-3 pt-1">
+        <p class="text-[11px] text-amber-900 leading-tight">
+          Frais de garde pour enfant de moins de 6 ans acquittés sur l'année civile (du 1ᵉʳ janvier au 31 décembre).
+        </p>
+
+        <div class="space-y-2">
+          <!-- Option 1 : Base stricte recommandée -->
+          <div class="p-3 bg-white rounded-xl border border-amber-200 shadow-xs flex justify-between items-center">
+            <div>
+              <div class="text-xs font-bold text-slate-800">Garde seule (Garderie + Centre)</div>
+              <div class="text-[10px] text-slate-500">Recommandé par la doctrine fiscale (hors repas)</div>
+            </div>
+            <div id="fiscalBaseStricte" class="text-base font-black text-blue-700">0,00 €</div>
+          </div>
+
+          <!-- Option 2 : Base globale avec cantine -->
+          <div class="p-3 bg-white rounded-xl border border-amber-200 shadow-xs flex justify-between items-center">
+            <div>
+              <div class="text-xs font-bold text-slate-800">Total avec restauration</div>
+              <div class="text-[10px] text-slate-500">Si forfaits globaux admis localement</div>
+            </div>
+            <div id="fiscalBaseGlobale" class="text-base font-black text-slate-700">0,00 €</div>
+          </div>
+        </div>
+
+        <div class="text-[10px] text-amber-800 leading-tight bg-amber-100/70 p-2.5 rounded-xl border border-amber-200">
+          <strong>* Note :</strong> Les frais de nourriture sont en principe exclus de la base de calcul du crédit d'impôt. Rapprochez-vous de votre Service des Impôts des Particuliers (SIP) pour vérifier si les forfaits incluant la restauration sont admis sur votre secteur.
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Volet déroulant : Détail des journées -->
     <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
       <button type="button" onclick="toggleSection('contenuDetails', 'flecheDetails')" class="w-full flex items-center justify-between text-left focus:outline-none">
         <span class="flex items-center space-x-2 font-bold text-slate-800 text-xs sm:text-sm">
@@ -244,7 +313,7 @@
       </button>
 
       <div id="contenuDetails" class="hidden mt-3 pt-3 border-t border-slate-100">
-        <p class="text-[11px] text-slate-400 mb-2 italic">Clique sur une ligne pour modifier la journée.</p>
+        <p class="text-[11px] text-slate-400 mb-2 italic">Cliquez sur une ligne pour modifier la journée.</p>
         <div id="historiqueList" class="space-y-1.5 text-xs divide-y divide-slate-100"></div>
       </div>
     </div>
@@ -252,9 +321,6 @@
   </main>
 
   <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6mlcRtCjG0tR8dsmO1IpHlan4F-gz1P3NYx3u5jWJ9-TUrPLDwyGsU9JhoxoJgKHUaQ/exec";
-
-    // Grille municipale officielle du Passage
     const BAREMES_PASSAGE = {
       "QF inférieur à 300":           { garderie: 7.11,  cantine: 1.00, centreJour: 2.35, centreDemi: 1.20 },
       "QF compris entre 300 et 480":  { garderie: 8.47,  cantine: 1.00, centreJour: 2.45, centreDemi: 1.25 },
@@ -267,6 +333,10 @@
 
     let records = JSON.parse(localStorage.getItem('perisco_data') || '[]');
 
+    function getScriptUrl() {
+      return localStorage.getItem('user_script_url') || "";
+    }
+
     function getQFActuel() {
       return localStorage.getItem('perisco_qf') || "QF compris entre 916 et 1215";
     }
@@ -276,6 +346,37 @@
       localStorage.setItem('perisco_qf', qf);
       actualiserAffichage();
       showToast('Barème QF appliqué');
+    }
+
+    function ouvrirModalConfig() {
+      document.getElementById('inputUrlScript').value = getScriptUrl();
+      document.getElementById('modalConfig').classList.remove('hidden');
+    }
+
+    function fermerModalConfig() {
+      document.getElementById('modalConfig').classList.add('hidden');
+    }
+
+    function sauvegarderConfig() {
+      const url = document.getElementById('inputUrlScript').value.trim();
+      if (url && !url.startsWith("https://script.google.com/")) {
+        return showToast('URL Google Apps Script invalide', true);
+      }
+      localStorage.setItem('user_script_url', url);
+      fermerModalConfig();
+      if (url) {
+        showToast('Google Sheets connecté');
+        synchroniserDepuisSheets();
+      } else {
+        showToast('Mode local activé');
+      }
+    }
+
+    function supprimerConfig() {
+      localStorage.removeItem('user_script_url');
+      document.getElementById('inputUrlScript').value = "";
+      fermerModalConfig();
+      showToast('Déconnecté de Google Sheets');
     }
 
     function gererAffichageRepasCentre() {
@@ -288,7 +389,6 @@
       }
     }
 
-    // Gestionnaire universel pour les accordéons
     function toggleSection(idContenu, idFleche) {
       const contenu = document.getElementById(idContenu);
       const fleche = document.getElementById(idFleche);
@@ -303,7 +403,6 @@
       }
     }
 
-    // Ouvre le sélecteur natif au clic sur le bouton calendrier
     function ouvrirCalendrier(inputId) {
       const input = document.getElementById(inputId);
       if (!input) return;
@@ -324,8 +423,9 @@
 
       const dateInput = document.getElementById('dateInput');
       dateInput.value = localDate;
-      dateInput.min = "2026-09-01";
-      dateInput.max = "2027-07-31";
+      // Sans bornage fixe pour autoriser indéfiniment les rentrées suivantes
+      dateInput.removeAttribute('min');
+      dateInput.removeAttribute('max');
 
       majDateDisplay(now);
       chargerJourneeExistante(localDate);
@@ -426,7 +526,6 @@
       majDateDisplay(d);
       
       chargerJourneeExistante(dateStr);
-      
       document.getElementById('periscoForm').scrollIntoView({ behavior: 'smooth' });
       showToast('Journée chargée pour modification');
     }
@@ -436,9 +535,14 @@
     });
 
     async function synchroniserDepuisSheets() {
-      showToast('Actualisation...');
+      const url = getScriptUrl();
+      if (!url) {
+        return showToast('Aucun Google Sheets connecté (⚙️)');
+      }
+
+      showToast('Actualisation en cours...');
       try {
-        const res = await fetch(GOOGLE_SCRIPT_URL);
+        const res = await fetch(url);
         const json = await res.json();
         if (json.status === "success" && json.data) {
           records = json.data.map(r => ({
@@ -456,7 +560,7 @@
           showToast('Données synchronisées !');
         }
       } catch (err) {
-        showToast('Erreur synchronisation', true);
+        showToast('Erreur synchronisation Sheets', true);
       }
     }
 
@@ -474,12 +578,12 @@
       if ((mArr && !mDep) || (!mArr && mDep)) return showToast('Garderie matin incomplète', true);
       if ((sArr && !sDep) || (!sArr && sDep)) return showToast('Garderie soir incomplète', true);
 
-      // --- GARDE-FOU ANTI-ÉCRASEMENT ---
+      // Garde-fou anti-écrasement
       const dateExiste = records.some(r => r.date === date);
       if (dateExiste) {
         const dateFr = formaterDateFr(date);
         const confirmation = window.confirm(
-          `⚠️ Une saisie existe déjà pour le ${dateFr}.\n\nSouhaites-tu vraiment modifier cette journée ?`
+          `⚠️ Une saisie existe déjà pour le ${dateFr}.\n\nSouhaitez-vous vraiment modifier cette journée ?`
         );
         if (!confirmation) {
           showToast('Modification annulée');
@@ -515,18 +619,23 @@
       localStorage.setItem('perisco_data', JSON.stringify(records));
       actualiserAffichage();
 
-      showToast('Enregistrement en cours...');
-
-      try {
-        await fetch(GOOGLE_SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload)
-        });
-        showToast('Enregistré dans Google Sheets !');
-      } catch (err) {
-        showToast('Enregistré en local', true);
+      // Synchronisation Google Sheets si URL configurée
+      const scriptUrl = getScriptUrl();
+      if (scriptUrl) {
+        showToast('Enregistrement en cours...');
+        try {
+          await fetch(scriptUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+          });
+          showToast('Enregistré en local et sur Sheets !');
+        } catch (err) {
+          showToast('Enregistré en local (échec Sheets)', true);
+        }
+      } else {
+        showToast('Journée enregistrée en local !');
       }
     });
 
@@ -576,17 +685,65 @@
 
       const bilanArchive = calculerBilanMois(moisArchive, tarifs);
 
-      // Affichage cantine avec montant
       document.getElementById('prevRepas').innerText = `${bilanArchive.totRepas} (${bilanArchive.coutCantine.toFixed(2)}€)`;
-      
-      // Affichage garderie avec montant
       document.getElementById('prevGarderie').innerText = `${bilanArchive.joursGarderie} j (${bilanArchive.coutGarderie.toFixed(2)}€)`;
-      
-      // Affichage centre avec montant
       document.getElementById('prevCentre').innerText = `${bilanArchive.totJoursCentre} j (${bilanArchive.coutCentre.toFixed(2)}€)`;
-      
-      // Total facturé
       document.getElementById('prevCout').innerText = bilanArchive.coutTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+    }
+
+    function initSelectAnneesFiscales() {
+      const select = document.getElementById('selectAnneeFiscale');
+      if (!select) return;
+
+      const now = new Date();
+      const anneeCourante = now.getFullYear();
+
+      // Collecte des années présentes dans les données
+      const annees = new Set();
+      annees.add(anneeCourante);
+      records.forEach(r => {
+        if (r.date && r.date.length >= 4) {
+          const y = parseInt(r.date.slice(0, 4), 10);
+          if (!isNaN(y)) annees.add(y);
+        }
+      });
+
+      const anneesTriees = Array.from(annees).sort((a, b) => b - a);
+      select.innerHTML = '';
+      anneesTriees.forEach(y => {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.innerText = y;
+        if (y === anneeCourante) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    function actualiserAffichageFiscal() {
+      const select = document.getElementById('selectAnneeFiscale');
+      if (!select || !select.value) return;
+
+      const anneeCivile = select.value;
+      const qf = getQFActuel();
+      const tarifs = BAREMES_PASSAGE[qf] || BAREMES_PASSAGE["QF compris entre 916 et 1215"];
+
+      let totalGarderie = 0;
+      let totalCentre = 0;
+      let totalCantine = 0;
+
+      for (let m = 1; m <= 12; m++) {
+        const cleMois = `${anneeCivile}-${String(m).padStart(2, '0')}`;
+        const b = calculerBilanMois(cleMois, tarifs);
+        totalGarderie += b.coutGarderie;
+        totalCentre += b.coutCentre;
+        totalCantine += b.coutCantine;
+      }
+
+      const baseStricte = totalGarderie + totalCentre;
+      const baseGlobale = baseStricte + totalCantine;
+
+      document.getElementById('fiscalBaseStricte').innerText = baseStricte.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+      document.getElementById('fiscalBaseGlobale').innerText = baseGlobale.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
     }
 
     function actualiserAffichage() {
@@ -594,7 +751,7 @@
       const tarifs = BAREMES_PASSAGE[qf] || BAREMES_PASSAGE["QF compris entre 916 et 1215"];
       const selectedMonth = document.getElementById('filtreMois').value;
 
-      // 1. Bilan du mois en cours sélectionné
+      // 1. Mois en cours
       const bilanActuel = calculerBilanMois(selectedMonth, tarifs);
 
       document.getElementById('statRepas').innerText = `${bilanActuel.totRepas} (${bilanActuel.coutCantine.toFixed(2)}€)`;
@@ -602,7 +759,7 @@
       document.getElementById('statCentre').innerText = `${bilanActuel.totJoursCentre} j (${bilanActuel.coutCentre.toFixed(2)}€)`;
       document.getElementById('statCout').innerText = bilanActuel.coutTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
-      // 2. Plafonnement et calcul du sélecteur de mois archivé
+      // 2. Mois archivé
       const [annee, mois] = selectedMonth.split('-').map(Number);
       const datePrec = new Date(annee, mois - 2, 1);
       const cleMoisPrec = `${datePrec.getFullYear()}-${String(datePrec.getMonth() + 1).padStart(2, '0')}`;
@@ -614,7 +771,10 @@
       }
       actualiserSyntheseArchive();
 
-      // 3. Mise à jour de la liste
+      // 3. Volet fiscal
+      actualiserAffichageFiscal();
+
+      // 4. Liste détaillée
       const container = document.getElementById('historiqueList');
       const compteurElem = document.getElementById('compteurLignesDetails');
 
@@ -673,17 +833,19 @@
       XLSX.writeFile(wb, `Périscolaire_${document.getElementById('filtreMois').value}.xlsx`);
     }
 
-    // Initialisation
+    // Démarrage
     const now = new Date();
     const y = now.getFullYear();
     const m = String(now.getMonth() + 1).padStart(2, '0');
     document.getElementById('filtreMois').value = `${y}-${m}`;
     document.getElementById('selectQF').value = getQFActuel();
     initAujourdhui();
+    initSelectAnneesFiscales();
     actualiserAffichage();
 
-    // Synchronisation au démarrage
-    synchroniserDepuisSheets();
+    if (getScriptUrl()) {
+      synchroniserDepuisSheets();
+    }
   </script>
 </body>
 </html>
