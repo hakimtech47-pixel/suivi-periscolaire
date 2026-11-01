@@ -13,27 +13,40 @@
   <!-- Toast Notification -->
   <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 opacity-0 pointer-events-none px-4 py-2 rounded-lg text-xs font-semibold shadow-lg text-white"></div>
 
-  <!-- Modal Configuration Compte Parent (Google Sheets) -->
+  <!-- Modal Configuration Compte Parent & Sauvegarde -->
   <div id="modalConfig" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
       <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-slate-800 text-sm">⚙️ Connexion Google Sheets</h3>
+        <h3 class="font-bold text-slate-800 text-sm">⚙️ Sauvegarde & Paramètres</h3>
         <button type="button" onclick="fermerModalConfig()" class="text-slate-400 hover:text-slate-700 text-lg leading-none">&times;</button>
       </div>
-      <p class="text-xs text-slate-600 leading-relaxed">
-        Pour synchroniser vos données avec votre propre Google Drive, collez l'URL de votre application Web Google Apps Script :
-      </p>
-      <div>
-        <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">URL Web App personnelle</label>
-        <input type="url" id="inputUrlScript" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-50 border rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500">
+
+      <!-- Sauvegarde locale -->
+      <div class="space-y-2">
+        <label class="block text-[11px] font-bold text-slate-500 uppercase">Sauvegarde du téléphone</label>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" onclick="exporterBackupJSON()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2 px-3 rounded-xl border border-slate-300 transition text-center">
+            💾 Exporter
+          </button>
+          <label class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2 px-3 rounded-xl border border-slate-300 transition text-center cursor-pointer flex items-center justify-center">
+            📂 Restaurer
+            <input type="file" id="importFileInput" accept=".json" onchange="importerBackupJSON(event)" class="hidden">
+          </label>
+        </div>
       </div>
-      <div class="flex items-center space-x-2 pt-2">
-        <button type="button" onclick="sauvegarderConfig()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-xl text-xs transition">
-          Enregistrer
-        </button>
-        <button type="button" onclick="supprimerConfig()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold py-2 px-3 rounded-xl text-xs border border-rose-200 transition">
-          Déconnecter
-        </button>
+
+      <!-- Connexion Sheets optionnelle -->
+      <div class="space-y-2 border-t pt-3">
+        <label class="block text-[11px] font-bold text-slate-500 uppercase">Google Sheets (Optionnel)</label>
+        <input type="url" id="inputUrlScript" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-50 border rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500">
+        <div class="flex items-center space-x-2 pt-1">
+          <button type="button" onclick="sauvegarderConfig()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-xl text-xs transition">
+            Enregistrer l'URL
+          </button>
+          <button type="button" onclick="supprimerConfig()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold py-2 px-3 rounded-xl text-xs border border-rose-200 transition">
+            Retirer
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -46,7 +59,7 @@
         <p class="text-[11px] text-blue-100" id="currentDateDisplay"></p>
       </div>
       <div class="flex items-center space-x-1.5">
-        <button type="button" onclick="ouvrirModalConfig()" title="Paramètres de synchronisation" class="bg-blue-700 hover:bg-blue-800 active:scale-95 text-xs p-2 rounded-lg border border-blue-400">
+        <button type="button" onclick="ouvrirModalConfig()" title="Paramètres & Sauvegarde" class="bg-blue-700 hover:bg-blue-800 active:scale-95 text-xs p-2 rounded-lg border border-blue-400">
           ⚙️
         </button>
         <button type="button" id="btnSync" onclick="synchroniserDepuisSheets()" title="Synchroniser avec Google Sheets" class="bg-blue-700 hover:bg-blue-800 active:scale-95 text-xs p-2 rounded-lg border border-blue-400">
@@ -58,18 +71,29 @@
       </div>
     </div>
 
-    <!-- Sélecteur de QF municipal -->
-    <div class="bg-blue-700/80 p-2 rounded-xl flex items-center justify-between text-xs">
-      <span class="font-medium text-blue-100">Tranche QF :</span>
-      <select id="selectQF" onchange="changerQF()" class="bg-white text-slate-800 font-semibold rounded-lg px-2 py-1 text-xs outline-none max-w-[210px] truncate">
-        <option value="QF inférieur à 300">Moins de 300</option>
-        <option value="QF compris entre 300 et 480">300 à 480</option>
-        <option value="QF compris entre 481 et 705">481 à 705</option>
-        <option value="QF compris entre 706 et 915">706 à 915</option>
-        <option value="QF compris entre 916 et 1215" selected>916 à 1215</option>
-        <option value="QF compris entre 1216 et 1500">1216 à 1500</option>
-        <option value="QF supérieur à 1500">Plus de 1500</option>
-      </select>
+    <!-- Sélecteurs Enfant (Fratrie) & QF -->
+    <div class="grid grid-cols-2 gap-2 text-xs">
+      <!-- Sélecteur Enfant -->
+      <div class="bg-blue-700/80 p-1.5 rounded-xl flex items-center justify-between">
+        <select id="selectEnfant" onchange="changerEnfantActif()" class="bg-white text-slate-800 font-semibold rounded-lg px-2 py-1 text-xs outline-none w-[80%] truncate">
+        </select>
+        <button type="button" onclick="ajouterOuRenommerEnfant()" title="Ajouter ou renommer un enfant" class="bg-blue-800 hover:bg-blue-900 active:scale-95 text-white font-black text-xs px-2 py-1 rounded-lg">
+          +
+        </button>
+      </div>
+
+      <!-- Sélecteur QF municipal -->
+      <div class="bg-blue-700/80 p-1.5 rounded-xl flex items-center justify-between">
+        <select id="selectQF" onchange="changerQF()" class="bg-white text-slate-800 font-semibold rounded-lg px-2 py-1 text-xs outline-none w-full truncate">
+          <option value="QF inférieur à 300">Moins de 300</option>
+          <option value="QF compris entre 300 et 480">300 à 480</option>
+          <option value="QF compris entre 481 et 705">481 à 705</option>
+          <option value="QF compris entre 706 et 915">706 à 915</option>
+          <option value="QF compris entre 916 et 1215" selected>916 à 1215</option>
+          <option value="QF compris entre 1216 et 1500">1216 à 1500</option>
+          <option value="QF supérieur à 1500">Plus de 1500</option>
+        </select>
+      </div>
     </div>
   </header>
 
@@ -78,7 +102,7 @@
     <!-- Formulaire de saisie -->
     <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
       <h2 class="font-bold text-slate-800 mb-3 text-sm flex items-center justify-between border-b pb-2">
-        <span>Saisie de la journée</span>
+        <span>Saisie du jour (<span id="labelNomEnfantActif" class="text-blue-600"></span>)</span>
         <button type="button" onclick="initAujourdhui()" class="text-xs text-blue-600 font-medium hover:underline">Aujourd'hui</button>
       </h2>
 
@@ -170,7 +194,7 @@
 
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Notes / Remarques</label>
-          <input type="text" id="notesInput" placeholder="Ex : retard, sortie scolaire..." class="w-full bg-slate-50 border rounded-lg p-2 text-sm">
+          <input type="text" id="notesInput" placeholder="Ex : retard, sortie..." class="w-full bg-slate-50 border rounded-lg p-2 text-sm">
         </div>
 
         <button type="submit" id="btnSubmit" class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm shadow transition">
@@ -179,11 +203,11 @@
       </form>
     </div>
 
-    <!-- 1. Bilan estimé du mois (Accordéon avec bouton calendrier) -->
+    <!-- 1. Bilan estimé du mois (Individuel) -->
     <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
       <div class="flex items-center justify-between gap-2">
         <button type="button" onclick="toggleSection('contenuBilanMois', 'flecheBilanMois')" class="flex items-center space-x-2 text-left focus:outline-none flex-1">
-          <span class="font-bold text-slate-800 text-sm">📊 Bilan estimé</span>
+          <span class="font-bold text-slate-800 text-sm">📊 Bilan estimé (<span id="labelBilanEnfant" class="text-blue-600"></span>)</span>
           <span id="flecheBilanMois" class="text-slate-400 text-xs transition-transform duration-200 transform rotate-180">▼</span>
         </button>
         
@@ -198,7 +222,7 @@
       <div id="contenuBilanMois" class="space-y-3 pt-1">
         <div class="grid grid-cols-2 gap-2 text-center">
           <div class="p-2.5 bg-blue-50 rounded-xl">
-            <div class="text-[11px] text-blue-600 font-semibold">Cantine</div>
+            <div class="text-[11px] text-blue-600 font-semibold">Cantine scolaire</div>
             <div id="statRepas" class="text-base font-black text-blue-950">0</div>
           </div>
           <div class="p-2.5 bg-blue-50 rounded-xl">
@@ -217,11 +241,11 @@
       </div>
     </div>
 
-    <!-- 2. Synthèse mensuelle archivée (Accordéon avec bouton calendrier) -->
+    <!-- 2. Synthèse mensuelle archivée (Individuelle) -->
     <div class="bg-slate-50 rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
       <div class="flex items-center justify-between gap-2">
         <button type="button" onclick="toggleSection('contenuSyntheseArchive', 'flecheSyntheseArchive')" class="flex items-center space-x-2 text-left focus:outline-none flex-1">
-          <span class="font-bold text-slate-700 text-xs sm:text-sm">📁 Mois archivé</span>
+          <span class="font-bold text-slate-700 text-xs sm:text-sm">📁 Mois archivé (<span id="labelArchiveEnfant"></span>)</span>
           <span id="flecheSyntheseArchive" class="text-slate-400 text-xs transition-transform duration-200">▼</span>
         </button>
 
@@ -255,48 +279,58 @@
       </div>
     </div>
 
-    <!-- 3. Déclaration fiscale DGFiP (Accordéon Année civile) -->
+    <!-- 3. Déclaration fiscale DGFiP (Individuelle & Foyer Total) -->
     <div class="bg-amber-50/60 rounded-2xl border border-amber-200 p-4 shadow-sm space-y-3">
       <div class="flex items-center justify-between gap-2">
         <button type="button" onclick="toggleSection('contenuFiscal', 'flecheFiscal')" class="flex items-center space-x-2 text-left focus:outline-none flex-1">
-          <span class="font-bold text-amber-950 text-xs sm:text-sm">🏛️ Déclaration fiscale (Case 7GA)</span>
+          <span class="font-bold text-amber-950 text-xs sm:text-sm">🏛️ Déclaration fiscale</span>
           <span id="flecheFiscal" class="text-amber-600 text-xs transition-transform duration-200">▼</span>
         </button>
 
         <div class="flex items-center bg-white border border-amber-300 rounded-xl px-2 py-1 shadow-sm">
           <select id="selectAnneeFiscale" onchange="actualiserAffichageFiscal()" class="bg-transparent text-xs font-bold text-amber-900 outline-none cursor-pointer">
-            <!-- Rempli dynamiquement -->
           </select>
         </div>
       </div>
 
       <div id="contenuFiscal" class="hidden space-y-3 pt-1">
         <p class="text-[11px] text-amber-900 leading-tight">
-          Frais de garde pour enfant de moins de 6 ans acquittés sur l'année civile (du 1ᵉʳ janvier au 31 décembre).
+          Crédit d'impôt pour frais de garde (enfants de moins de 6 ans, année civile du 1ᵉʳ janvier au 31 décembre).
         </p>
 
-        <div class="space-y-2">
-          <!-- Option 1 : Base stricte recommandée -->
-          <div class="p-3 bg-white rounded-xl border border-amber-200 shadow-xs flex justify-between items-center">
+        <!-- Calcul spécifique pour l'enfant sélectionné -->
+        <div class="p-3 bg-white rounded-xl border border-amber-200 shadow-xs space-y-1.5">
+          <div class="flex justify-between items-center">
             <div>
-              <div class="text-xs font-bold text-slate-800">Garde seule (Garderie + Centre)</div>
-              <div class="text-[10px] text-slate-500">Recommandé par la doctrine fiscale (hors repas)</div>
+              <div class="text-xs font-bold text-slate-800">
+                <span id="nomEnfantFiscal"></span> : <span id="labelCaseFiscale" class="text-blue-600 font-extrabold">Case 7GA</span>
+              </div>
+              <div class="text-[10px] text-slate-500">Garderie + Centre Rosette (repas centre inclus)</div>
             </div>
-            <div id="fiscalBaseStricte" class="text-base font-black text-blue-700">0,00 €</div>
+            <div id="fiscalMontantEligible" class="text-lg font-black text-blue-700">0,00 €</div>
           </div>
-
-          <!-- Option 2 : Base globale avec cantine -->
-          <div class="p-3 bg-white rounded-xl border border-amber-200 shadow-xs flex justify-between items-center">
-            <div>
-              <div class="text-xs font-bold text-slate-800">Total avec restauration</div>
-              <div class="text-[10px] text-slate-500">Si forfaits globaux admis localement</div>
-            </div>
-            <div id="fiscalBaseGlobale" class="text-base font-black text-slate-700">0,00 €</div>
+          <div class="flex justify-between items-center pt-1 border-t border-slate-100 text-[10px] text-slate-500">
+            <span>Cantine scolaire exclue :</span>
+            <span id="fiscalCantineExclue" class="font-semibold text-slate-700">0,00 €</span>
           </div>
         </div>
 
-        <div class="text-[10px] text-amber-800 leading-tight bg-amber-100/70 p-2.5 rounded-xl border border-amber-200">
-          <strong>* Note :</strong> Les frais de nourriture sont en principe exclus de la base de calcul du crédit d'impôt. Rapprochez-vous de votre Service des Impôts des Particuliers (SIP) pour vérifier si les forfaits incluant la restauration sont admis sur votre secteur.
+        <!-- Récapitulatif fratrie globale pour le foyer -->
+        <div class="p-3 bg-amber-100/70 rounded-xl border border-amber-300 shadow-xs space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-black text-amber-950 uppercase tracking-wide">Total Déductible Foyer</span>
+            <span id="fiscalTotalFoyer" class="text-lg font-black text-emerald-800">0,00 €</span>
+          </div>
+          <div id="detailFratrieFiscale" class="space-y-1 text-[11px] text-amber-900 pt-1 border-t border-amber-200">
+            <!-- Liste détaillée de chaque enfant générée dynamiquement -->
+          </div>
+          <div class="text-[10px] text-amber-800 pt-1 leading-tight italic">
+            * Plafond DGFiP : 3 500 € par enfant (soit jusqu'à 1 750 € d'avantage fiscal par enfant).
+          </div>
+        </div>
+
+        <div class="text-[10px] text-emerald-800 leading-tight bg-emerald-50 p-2.5 rounded-xl border border-emerald-200">
+          ✓ <strong>Doctrine DGFiP validée :</strong> La garderie et le centre ALSH ouvrent droit à 50 % de crédit d'impôt. La cantine des jours d'école est strictement exclue.
         </div>
       </div>
     </div>
@@ -306,7 +340,7 @@
       <button type="button" onclick="toggleSection('contenuDetails', 'flecheDetails')" class="w-full flex items-center justify-between text-left focus:outline-none">
         <span class="flex items-center space-x-2 font-bold text-slate-800 text-xs sm:text-sm">
           <span>📋</span>
-          <span>Détail des journées du mois</span>
+          <span>Détail des journées (<span id="labelDetailsEnfant"></span>)</span>
           <span id="compteurLignesDetails" class="text-[11px] font-normal text-slate-400"></span>
         </span>
         <span id="flecheDetails" class="text-slate-400 text-xs transition-transform duration-200">▼</span>
@@ -331,8 +365,155 @@
       "QF supérieur à 1500":          { garderie: 19.63, cantine: 3.36, centreJour: 8.50, centreDemi: 4.25 }
     };
 
-    let records = JSON.parse(localStorage.getItem('perisco_data') || '[]');
+    // --- Gestion Multi-Enfants / Fratrie ---
+    let listeEnfants = JSON.parse(localStorage.getItem('perisco_enfants') || '["Issam"]');
+    let enfantActif = localStorage.getItem('perisco_enfant_actif') || listeEnfants[0] || "Issam";
 
+    function getStorageKey(nomEnfant) {
+      return `perisco_data_${nomEnfant || enfantActif}`;
+    }
+
+    function getRecords(nomEnfant) {
+      const targetEnfant = nomEnfant || enfantActif;
+      const key = getStorageKey(targetEnfant);
+      const ancien = localStorage.getItem('perisco_data');
+      if (ancien && !localStorage.getItem(key) && targetEnfant === "Issam") {
+        localStorage.setItem(key, ancien);
+      }
+      return JSON.parse(localStorage.getItem(key) || '[]');
+    }
+
+    function setRecords(data, nomEnfant) {
+      localStorage.setItem(getStorageKey(nomEnfant || enfantActif), JSON.stringify(data));
+    }
+
+    function initialiserSelectEnfant() {
+      const select = document.getElementById('selectEnfant');
+      select.innerHTML = '';
+      listeEnfants.forEach((nom) => {
+        const opt = document.createElement('option');
+        opt.value = nom;
+        opt.innerText = nom;
+        if (nom === enfantActif) opt.selected = true;
+        select.appendChild(opt);
+      });
+      majLabelsEnfant();
+    }
+
+    function majLabelsEnfant() {
+      document.getElementById('labelNomEnfantActif').innerText = enfantActif;
+      document.getElementById('labelBilanEnfant').innerText = enfantActif;
+      document.getElementById('labelArchiveEnfant').innerText = enfantActif;
+      document.getElementById('labelDetailsEnfant').innerText = enfantActif;
+      document.getElementById('nomEnfantFiscal').innerText = enfantActif;
+
+      const idx = listeEnfants.indexOf(enfantActif);
+      const codeCase = idx === 0 ? '7GA' : (idx === 1 ? '7GB' : '7GC');
+      document.getElementById('labelCaseFiscale').innerText = `Case ${codeCase}`;
+    }
+
+    function changerEnfantActif() {
+      enfantActif = document.getElementById('selectEnfant').value;
+      localStorage.setItem('perisco_enfant_actif', enfantActif);
+      majLabelsEnfant();
+      initAujourdhui();
+      initSelectAnneesFiscales();
+      actualiserAffichage();
+      showToast(`Profil actif : ${enfantActif}`);
+    }
+
+    function ajouterOuRenommerEnfant() {
+      const choix = prompt(
+        `Gestion de la fratrie :\n\n- Entrez un NOUVEAU prénom pour l'ajouter\n- Ou tapez "renommer:NouveauNom" pour renommer "${enfantActif}"`, 
+        ""
+      );
+      if (!choix) return;
+
+      const saisie = choix.trim();
+      if (saisie.toLowerCase().startsWith("renommer:")) {
+        const nouveauNom = saisie.split(":")[1]?.trim();
+        if (nouveauNom && !listeEnfants.includes(nouveauNom)) {
+          const index = listeEnfants.indexOf(enfantActif);
+          const oldData = getRecords();
+          localStorage.removeItem(getStorageKey());
+          listeEnfants[index] = nouveauNom;
+          enfantActif = nouveauNom;
+          localStorage.setItem('perisco_enfants', JSON.stringify(listeEnfants));
+          localStorage.setItem('perisco_enfant_actif', enfantActif);
+          setRecords(oldData);
+          initialiserSelectEnfant();
+          actualiserAffichage();
+          showToast(`Profil renommé en ${nouveauNom}`);
+        }
+      } else if (saisie && !listeEnfants.includes(saisie)) {
+        listeEnfants.push(saisie);
+        enfantActif = saisie;
+        localStorage.setItem('perisco_enfants', JSON.stringify(listeEnfants));
+        localStorage.setItem('perisco_enfant_actif', enfantActif);
+        initialiserSelectEnfant();
+        initAujourdhui();
+        actualiserAffichage();
+        showToast(`Enfant ajouté : ${saisie}`);
+      }
+    }
+
+    // --- Sauvegarde & Restauration Locale (JSON) ---
+    function exporterBackupJSON() {
+      const exportObj = {
+        dateExport: new Date().toISOString(),
+        enfants: listeEnfants,
+        qf: getQFActuel(),
+        data: {}
+      };
+      listeEnfants.forEach(enf => {
+        exportObj.data[enf] = getRecords(enf);
+      });
+
+      const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Backup_Periscolaire_Fratrie_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Sauvegarde fratrie exportée');
+    }
+
+    function importerBackupJSON(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const imported = JSON.parse(evt.target.result);
+          if (imported.enfants && imported.data) {
+            listeEnfants = imported.enfants;
+            localStorage.setItem('perisco_enfants', JSON.stringify(listeEnfants));
+            if (imported.qf) localStorage.setItem('perisco_qf', imported.qf);
+
+            Object.keys(imported.data).forEach(enf => {
+              setRecords(imported.data[enf], enf);
+            });
+
+            enfantActif = listeEnfants[0];
+            localStorage.setItem('perisco_enfant_actif', enfantActif);
+            initialiserSelectEnfant();
+            initAujourdhui();
+            actualiserAffichage();
+            fermerModalConfig();
+            showToast('Données fratrie restaurées !');
+          } else {
+            showToast('Fichier de sauvegarde invalide', true);
+          }
+        } catch (err) {
+          showToast('Erreur lecture du fichier JSON', true);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // --- Configuration Sheets & UI ---
     function getScriptUrl() {
       return localStorage.getItem('user_script_url') || "";
     }
@@ -368,7 +549,7 @@
         showToast('Google Sheets connecté');
         synchroniserDepuisSheets();
       } else {
-        showToast('Mode local activé');
+        showToast('Mode local autonome actif');
       }
     }
 
@@ -406,12 +587,8 @@
     function ouvrirCalendrier(inputId) {
       const input = document.getElementById(inputId);
       if (!input) return;
-      if (typeof input.showPicker === 'function') {
-        input.showPicker();
-      } else {
-        input.focus();
-        input.click();
-      }
+      if (typeof input.showPicker === 'function') input.showPicker();
+      else { input.focus(); input.click(); }
     }
 
     function initAujourdhui() {
@@ -423,10 +600,6 @@
 
       const dateInput = document.getElementById('dateInput');
       dateInput.value = localDate;
-      // Sans bornage fixe pour autoriser indéfiniment les rentrées suivantes
-      dateInput.removeAttribute('min');
-      dateInput.removeAttribute('max');
-
       majDateDisplay(now);
       chargerJourneeExistante(localDate);
     }
@@ -451,10 +624,8 @@
         const m = s.match(/(\d{1,2}):(\d{2})/);
         return m ? { h: parseInt(m[1], 10), m: parseInt(m[2], 10) } : null;
       };
-
       const t1 = parseHMM(arr);
       const t2 = parseHMM(dep);
-
       if (!t1 || !t2) return 0;
       const diff = (t2.h * 60 + t2.m) - (t1.h * 60 + t1.m);
       return diff > 0 ? diff : 0;
@@ -485,6 +656,7 @@
     }
 
     function chargerJourneeExistante(dateStr) {
+      const records = getRecords();
       const item = records.find(r => r.date === dateStr);
       const btn = document.getElementById('btnSubmit');
 
@@ -499,7 +671,7 @@
         document.getElementById('centreRepasInput').checked = !!item.centreRepas;
         document.getElementById('notesInput').value = item.notes || '';
 
-        btn.innerText = "Modifier la journée existante";
+        btn.innerText = `Modifier la journée (${enfantActif})`;
         btn.className = "w-full bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white font-bold py-3 rounded-xl text-sm shadow transition";
       } else {
         document.getElementById('cantineInput').checked = false;
@@ -511,7 +683,7 @@
         document.getElementById('centreRepasInput').checked = false;
         document.getElementById('notesInput').value = '';
 
-        btn.innerText = "Enregistrer la journée";
+        btn.innerText = `Enregistrer la journée (${enfantActif})`;
         btn.className = "w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm shadow transition";
       }
       majDureesDirect();
@@ -520,11 +692,9 @@
     function selectionnerJourHistorique(dateStr) {
       const dateInput = document.getElementById('dateInput');
       dateInput.value = dateStr;
-      
       const parts = dateStr.split('-');
       const d = new Date(parts[0], parts[1] - 1, parts[2]);
       majDateDisplay(d);
-      
       chargerJourneeExistante(dateStr);
       document.getElementById('periscoForm').scrollIntoView({ behavior: 'smooth' });
       showToast('Journée chargée pour modification');
@@ -534,30 +704,46 @@
       chargerJourneeExistante(e.target.value);
     });
 
+    // Synchronisation depuis Google Sheets (Tri par enfant)
     async function synchroniserDepuisSheets() {
       const url = getScriptUrl();
-      if (!url) {
-        return showToast('Aucun Google Sheets connecté (⚙️)');
-      }
+      if (!url) return showToast('Mode local actif (Sheets non branché)');
 
-      showToast('Actualisation en cours...');
+      showToast('Synchronisation Sheets en cours...');
       try {
         const res = await fetch(url);
         const json = await res.json();
         if (json.status === "success" && json.data) {
-          records = json.data.map(r => ({
-            ...r,
-            dureeMatin: (typeof r.dureeMatin === 'number') ? r.dureeMatin : getDureeMinutes(r.matinArr, r.matinDep),
-            dureeSoir: (typeof r.dureeSoir === 'number') ? r.dureeSoir : getDureeMinutes(r.soirArr, r.soirDep)
-          }));
-          records.sort((a, b) => new Date(b.date) - new Date(a.date));
-          localStorage.setItem('perisco_data', JSON.stringify(records));
+          const parEnfant = {};
+          listeEnfants.forEach(enf => parEnfant[enf] = []);
+
+          json.data.forEach(r => {
+            const nom = r.enfant || "Issam";
+            if (!parEnfant[nom]) {
+              parEnfant[nom] = [];
+              if (!listeEnfants.includes(nom)) listeEnfants.push(nom);
+            }
+            parEnfant[nom].push({
+              ...r,
+              dureeMatin: (typeof r.dureeMatin === 'number') ? r.dureeMatin : getDureeMinutes(r.matinArr, r.matinDep),
+              dureeSoir: (typeof r.dureeSoir === 'number') ? r.dureeSoir : getDureeMinutes(r.soirArr, r.soirDep)
+            });
+          });
+
+          localStorage.setItem('perisco_enfants', JSON.stringify(listeEnfants));
+          Object.keys(parEnfant).forEach(nom => {
+            parEnfant[nom].sort((a, b) => new Date(b.date) - new Date(a.date));
+            setRecords(parEnfant[nom], nom);
+          });
+
           if (json.qfActif) {
             document.getElementById('selectQF').value = json.qfActif;
             localStorage.setItem('perisco_qf', json.qfActif);
           }
+
+          initialiserSelectEnfant();
           actualiserAffichage();
-          showToast('Données synchronisées !');
+          showToast('Fratrie synchronisée avec Sheets !');
         }
       } catch (err) {
         showToast('Erreur synchronisation Sheets', true);
@@ -578,12 +764,12 @@
       if ((mArr && !mDep) || (!mArr && mDep)) return showToast('Garderie matin incomplète', true);
       if ((sArr && !sDep) || (!sArr && sDep)) return showToast('Garderie soir incomplète', true);
 
-      // Garde-fou anti-écrasement
+      let records = getRecords();
       const dateExiste = records.some(r => r.date === date);
       if (dateExiste) {
         const dateFr = formaterDateFr(date);
         const confirmation = window.confirm(
-          `⚠️ Une saisie existe déjà pour le ${dateFr}.\n\nSouhaitez-vous vraiment modifier cette journée ?`
+          `⚠️ Une saisie existe déjà pour ${enfantActif} le ${dateFr}.\n\nSouhaitez-vous vraiment la modifier ?`
         );
         if (!confirmation) {
           showToast('Modification annulée');
@@ -597,6 +783,7 @@
       const centrePres = document.getElementById('centrePresence').value;
 
       const payload = {
+        enfant: enfantActif,
         date: date,
         qfSelectionne: qfChoisi,
         periode: document.getElementById('periodeInput').value,
@@ -616,10 +803,9 @@
       if (idx >= 0) records[idx] = payload;
       else records.push(payload);
       records.sort((a, b) => new Date(b.date) - new Date(a.date));
-      localStorage.setItem('perisco_data', JSON.stringify(records));
+      setRecords(records);
       actualiserAffichage();
 
-      // Synchronisation Google Sheets si URL configurée
       const scriptUrl = getScriptUrl();
       if (scriptUrl) {
         showToast('Enregistrement en cours...');
@@ -630,23 +816,23 @@
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(payload)
           });
-          showToast('Enregistré en local et sur Sheets !');
+          showToast('Enregistré (Local & Sheets) !');
         } catch (err) {
           showToast('Enregistré en local (échec Sheets)', true);
         }
       } else {
-        showToast('Journée enregistrée en local !');
+        showToast(`Journée enregistrée pour ${enfantActif} !`);
       }
     });
 
-    function calculerBilanMois(cleMois, tarifs) {
+    function calculerBilanMois(cleMois, tarifs, nomEnfant) {
       let totRepas = 0;
       let joursGarderie = 0;
       let totJoursCentre = 0;
       let coutCantine = 0;
       let coutCentre = 0;
 
-      const items = records.filter(r => r.date && r.date.startsWith(cleMois));
+      const items = getRecords(nomEnfant).filter(r => r.date && r.date.startsWith(cleMois));
 
       items.forEach(r => {
         if (r.cantine) { 
@@ -680,10 +866,9 @@
       const qf = getQFActuel();
       const tarifs = BAREMES_PASSAGE[qf] || BAREMES_PASSAGE["QF compris entre 916 et 1215"];
       const moisArchive = document.getElementById('filtreMoisArchive').value;
-
       if (!moisArchive) return;
 
-      const bilanArchive = calculerBilanMois(moisArchive, tarifs);
+      const bilanArchive = calculerBilanMois(moisArchive, tarifs, enfantActif);
 
       document.getElementById('prevRepas').innerText = `${bilanArchive.totRepas} (${bilanArchive.coutCantine.toFixed(2)}€)`;
       document.getElementById('prevGarderie').innerText = `${bilanArchive.joursGarderie} j (${bilanArchive.coutGarderie.toFixed(2)}€)`;
@@ -697,15 +882,15 @@
 
       const now = new Date();
       const anneeCourante = now.getFullYear();
+      const annees = new Set([anneeCourante]);
 
-      // Collecte des années présentes dans les données
-      const annees = new Set();
-      annees.add(anneeCourante);
-      records.forEach(r => {
-        if (r.date && r.date.length >= 4) {
-          const y = parseInt(r.date.slice(0, 4), 10);
-          if (!isNaN(y)) annees.add(y);
-        }
+      listeEnfants.forEach(enf => {
+        getRecords(enf).forEach(r => {
+          if (r.date && r.date.length >= 4) {
+            const y = parseInt(r.date.slice(0, 4), 10);
+            if (!isNaN(y)) annees.add(y);
+          }
+        });
       });
 
       const anneesTriees = Array.from(annees).sort((a, b) => b - a);
@@ -719,6 +904,7 @@
       });
     }
 
+    // Calcul fiscal : Individuel et Cumul Foyer
     function actualiserAffichageFiscal() {
       const select = document.getElementById('selectAnneeFiscale');
       if (!select || !select.value) return;
@@ -727,23 +913,43 @@
       const qf = getQFActuel();
       const tarifs = BAREMES_PASSAGE[qf] || BAREMES_PASSAGE["QF compris entre 916 et 1215"];
 
-      let totalGarderie = 0;
-      let totalCentre = 0;
-      let totalCantine = 0;
+      let totalFoyerGlobal = 0;
+      let htmlDetailFratrie = '';
 
-      for (let m = 1; m <= 12; m++) {
-        const cleMois = `${anneeCivile}-${String(m).padStart(2, '0')}`;
-        const b = calculerBilanMois(cleMois, tarifs);
-        totalGarderie += b.coutGarderie;
-        totalCentre += b.coutCentre;
-        totalCantine += b.coutCantine;
-      }
+      listeEnfants.forEach((enf, idx) => {
+        let garderieEnf = 0;
+        let centreEnf = 0;
+        let cantineEnf = 0;
 
-      const baseStricte = totalGarderie + totalCentre;
-      const baseGlobale = baseStricte + totalCantine;
+        for (let m = 1; m <= 12; m++) {
+          const cleMois = `${anneeCivile}-${String(m).padStart(2, '0')}`;
+          const b = calculerBilanMois(cleMois, tarifs, enf);
+          garderieEnf += b.coutGarderie;
+          centreEnf += b.coutCentre;
+          cantineEnf += b.coutCantine;
+        }
 
-      document.getElementById('fiscalBaseStricte').innerText = baseStricte.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-      document.getElementById('fiscalBaseGlobale').innerText = baseGlobale.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+        const eligibleEnf = garderieEnf + centreEnf;
+        totalFoyerGlobal += eligibleEnf;
+
+        const codeCase = idx === 0 ? '7GA' : (idx === 1 ? '7GB' : '7GC');
+
+        // Si c'est l'enfant actif à l'écran, on remplit le volet individuel
+        if (enf === enfantActif) {
+          document.getElementById('fiscalMontantEligible').innerText = eligibleEnf.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+          document.getElementById('fiscalCantineExclue').innerText = cantineEnf.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+        }
+
+        htmlDetailFratrie += `
+          <div class="flex justify-between items-center py-0.5">
+            <span>• <strong>${enf}</strong> (Case ${codeCase}) :</span>
+            <span class="font-bold">${eligibleEnf.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</span>
+          </div>
+        `;
+      });
+
+      document.getElementById('fiscalTotalFoyer').innerText = totalFoyerGlobal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+      document.getElementById('detailFratrieFiscale').innerHTML = htmlDetailFratrie;
     }
 
     function actualiserAffichage() {
@@ -751,8 +957,8 @@
       const tarifs = BAREMES_PASSAGE[qf] || BAREMES_PASSAGE["QF compris entre 916 et 1215"];
       const selectedMonth = document.getElementById('filtreMois').value;
 
-      // 1. Mois en cours
-      const bilanActuel = calculerBilanMois(selectedMonth, tarifs);
+      // 1. Mois en cours de l'enfant actif
+      const bilanActuel = calculerBilanMois(selectedMonth, tarifs, enfantActif);
 
       document.getElementById('statRepas').innerText = `${bilanActuel.totRepas} (${bilanActuel.coutCantine.toFixed(2)}€)`;
       document.getElementById('statGarderie').innerText = `${bilanActuel.joursGarderie} j (${bilanActuel.coutGarderie.toFixed(2)}€)`;
@@ -771,16 +977,16 @@
       }
       actualiserSyntheseArchive();
 
-      // 3. Volet fiscal
+      // 3. Volet fiscal complet
       actualiserAffichageFiscal();
 
-      // 4. Liste détaillée
+      // 4. Liste détaillée de l'enfant actif
       const container = document.getElementById('historiqueList');
       const compteurElem = document.getElementById('compteurLignesDetails');
 
       if (bilanActuel.items.length === 0) {
         if (compteurElem) compteurElem.innerText = '(0)';
-        container.innerHTML = '<div class="py-4 text-center text-slate-400">Aucune donnée pour ce mois.</div>';
+        container.innerHTML = `<div class="py-4 text-center text-slate-400">Aucune donnée pour ${enfantActif} ce mois-ci.</div>`;
         return;
       }
 
@@ -811,26 +1017,34 @@
       return `${d}/${m}/${y}`;
     }
 
+    // Export Excel complet de tous les enfants de la fratrie
     function exporterExcel() {
-      if (!records.length) return showToast('Aucune donnée à exporter', true);
+      const allRows = [];
+      listeEnfants.forEach(enf => {
+        const records = getRecords(enf);
+        records.forEach(r => {
+          allRows.push({
+            "Enfant": enf,
+            "Date": r.date,
+            "Période": r.periode,
+            "Cantine": r.cantine ? "Oui" : "Non",
+            "Matin Arrivée": r.matinArr || "",
+            "Matin Départ": r.matinDep || "",
+            "Soir Arrivée": r.soirArr || "",
+            "Soir Départ": r.soirDep || "",
+            "Centre Présence": r.centrePresence,
+            "Centre Repas": r.centreRepas ? "Oui" : "Non",
+            "Remarques": r.notes || ""
+          });
+        });
+      });
 
-      const rows = records.map(r => ({
-        "Date": r.date,
-        "Période": r.periode,
-        "Cantine": r.cantine ? "Oui" : "Non",
-        "Matin Arrivée": r.matinArr || "",
-        "Matin Départ": r.matinDep || "",
-        "Soir Arrivée": r.soirArr || "",
-        "Soir Départ": r.soirDep || "",
-        "Centre Présence": r.centrePresence,
-        "Centre Repas": r.centreRepas ? "Oui" : "Non",
-        "Remarques": r.notes || ""
-      }));
+      if (!allRows.length) return showToast('Aucune donnée à exporter', true);
 
-      const ws = XLSX.utils.json_to_sheet(rows);
+      const ws = XLSX.utils.json_to_sheet(allRows);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Journal");
-      XLSX.writeFile(wb, `Périscolaire_${document.getElementById('filtreMois').value}.xlsx`);
+      XLSX.utils.book_append_sheet(wb, ws, "Journal_Fratrie");
+      XLSX.writeFile(wb, `Periscolaire_Fratrie_${document.getElementById('filtreMois').value}.xlsx`);
     }
 
     // Démarrage
@@ -839,6 +1053,7 @@
     const m = String(now.getMonth() + 1).padStart(2, '0');
     document.getElementById('filtreMois').value = `${y}-${m}`;
     document.getElementById('selectQF').value = getQFActuel();
+    initialiserSelectEnfant();
     initAujourdhui();
     initSelectAnneesFiscales();
     actualiserAffichage();
