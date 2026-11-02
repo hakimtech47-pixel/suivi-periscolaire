@@ -752,49 +752,76 @@
     document.getElementById('periodeInput').addEventListener('change', gererAffichageSelonPeriode);
 
     async function synchroniserDepuisSheets() {
-      const url = getScriptUrl();
-      if (!url) return showToast('Mode local actif (Sheets non branché)');
+  const url = getScriptUrl();
+  if (!url) return showToast('Mode local actif (Sheets non branché)');
 
-      showToast('Synchronisation Sheets en cours...');
-      try {
-        const res = await fetch(url);
-        const json = await res.json();
-        if (json.status === "success" && json.data) {
-          const parEnfant = {};
-          listeEnfants.forEach(enf => parEnfant[enf] = []);
+  showToast('Synchronisation Sheets en cours...');
+  try {
+    const res = await fetch(url);
+    const json = await res.json();
 
-          json.data.forEach(r => {
-            const nom = r.enfant || "Issam";
-            if (!parEnfant[nom]) {
-              parEnfant[nom] = [];
-              if (!listeEnfants.includes(nom)) listeEnfants.push(nom);
-            }
-            parEnfant[nom].push({
-              ...r,
-              dureeMatin: (typeof r.dureeMatin === 'number') ? r.dureeMatin : getDureeMinutes(r.matinArr, r.matinDep),
-              dureeSoir: (typeof r.dureeSoir === 'number') ? r.dureeSoir : getDureeMinutes(r.soirArr, r.soirDep)
-            });
-          });
+    // Gestion universelle : que le script renvoie un tableau direct [...] ou { data: [...] }
+    const lignes = Array.isArray(json) ? json : (json.data || []);
 
-          localStorage.setItem('perisco_enfants', JSON.stringify(listeEnfants));
-          Object.keys(parEnfant).forEach(nom => {
-            parEnfant[nom].sort((a, b) => new Date(b.date) - new Date(a.date));
-            setRecords(parEnfant[nom], nom);
-          });
+    if (lignes && lignes.length > 0) {
+      const parEnfant = {};
+      listeEnfants.forEach(enf => parEnfant[enf] = []);
 
-          if (json.qfActif) {
-            document.getElementById('selectQF').value = json.qfActif;
-            localStorage.setItem('perisco_qf', json.qfActif);
-          }
-
-          initialiserSelectEnfant();
-          actualiserAffichage();
-          showToast('Fratrie synchronisée avec Sheets !');
+      lignes.forEach(r => {
+        const nom = (r.enfant || "Issam").trim();
+        if (!parEnfant[nom]) {
+          parEnfant[nom] = [];
+          if (!listeEnfants.includes(nom)) listeEnfants.push(nom);
         }
-      } catch (err) {
-        showToast('Erreur synchronisation Sheets', true);
+
+        // Nettoyage de la date (YYYY-MM-DD)
+        let datePropre = "";
+        if (r.date) {
+          datePropre = String(r.date).slice(0, 10);
+        }
+
+        parEnfant[nom].push({
+          enfant: nom,
+          date: datePropre,
+          jour: r.jour || "",
+          periode: r.periode || "Scolaire",
+          cantine: r.cantine === true || String(r.cantine).toLowerCase() === "oui",
+          matinArr: r.matinArr || "",
+          matinDep: r.matinDep || "",
+          dureeMatin: (typeof r.dureeMatin === 'number') ? r.dureeMatin : getDureeMinutes(r.matinArr, r.matinDep),
+          soirArr: r.soirArr || "",
+          soirDep: r.soirDep || "",
+          dureeSoir: (typeof r.dureeSoir === 'number') ? r.dureeSoir : getDureeMinutes(r.soirArr, r.soirDep),
+          centrePresence: r.centrePresence || "Aucun",
+          centreRepas: r.centreRepas === true || String(r.centreRepas).toLowerCase() === "oui",
+          notes: r.notes || ""
+        });
+      });
+
+      // Sauvegarde dans le stockage local pour chaque enfant
+      localStorage.setItem('perisco_enfants', JSON.stringify(listeEnfants));
+      Object.keys(parEnfant).forEach(nom => {
+        parEnfant[nom].sort((a, b) => new Date(b.date) - new Date(a.date));
+        setRecords(parEnfant[nom], nom);
+      });
+
+      if (json.qfActif) {
+        document.getElementById('selectQF').value = json.qfActif;
+        localStorage.setItem('perisco_qf', json.qfActif);
       }
+
+      initialiserSelectEnfant();
+      initSelectAnneesFiscales();
+      actualiserAffichage();
+      showToast(`Synchronisé avec succès (${lignes.length} jours chargés) !`);
+    } else {
+      showToast('Aucune donnée retournée par Sheets', true);
     }
+  } catch (err) {
+    console.error("Erreur synchro :", err);
+    showToast('Erreur traitement des données Sheets', true);
+  }
+}
 
     document.getElementById('periscoForm').addEventListener('submit', async (e) => {
       e.preventDefault();
