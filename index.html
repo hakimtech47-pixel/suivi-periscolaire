@@ -71,9 +71,8 @@
       </div>
     </div>
 
-    <!-- Sélecteurs Enfant (Fratrie) & QF -->
+    <!-- Sélecteurs Enfant & QF -->
     <div class="grid grid-cols-2 gap-2 text-xs">
-      <!-- Sélecteur Enfant -->
       <div class="bg-blue-700/80 p-1.5 rounded-xl flex items-center justify-between">
         <select id="selectEnfant" onchange="changerEnfantActif()" class="bg-white text-slate-800 font-semibold rounded-lg px-2 py-1 text-xs outline-none w-[80%] truncate">
         </select>
@@ -82,7 +81,6 @@
         </button>
       </div>
 
-      <!-- Sélecteur QF municipal -->
       <div class="bg-blue-700/80 p-1.5 rounded-xl flex items-center justify-between">
         <select id="selectQF" onchange="changerQF()" class="bg-white text-slate-800 font-semibold rounded-lg px-2 py-1 text-xs outline-none w-full truncate">
           <option value="QF inférieur à 300">Moins de 300</option>
@@ -122,7 +120,7 @@
           </div>
         </div>
 
-        <!-- Cantine scolaire (masquée mercredi et vacances) -->
+        <!-- Cantine scolaire -->
         <div id="blocCantineScolaire">
           <label class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border cursor-pointer active:bg-slate-100">
             <span class="text-sm font-semibold text-slate-700">Repas cantine scolaire</span>
@@ -130,7 +128,7 @@
           </label>
         </div>
 
-        <!-- Garderie Matin (7h30 - 8h20) -->
+        <!-- Garderie Matin -->
         <div id="blocGarderieMatin" class="p-3 bg-slate-50 rounded-xl border space-y-2">
           <div class="flex justify-between items-center">
             <span class="text-xs font-bold text-slate-600 uppercase">Garderie Matin (7h30 - 8h20)</span>
@@ -153,7 +151,7 @@
           </div>
         </div>
 
-        <!-- Garderie Soir (16h30 - 18h20) -->
+        <!-- Garderie Soir -->
         <div id="blocGarderieSoir" class="p-3 bg-slate-50 rounded-xl border space-y-2">
           <div class="flex justify-between items-center">
             <span class="text-xs font-bold text-slate-600 uppercase">Garderie Soir (16h30 - 18h20)</span>
@@ -203,7 +201,7 @@
       </form>
     </div>
 
-    <!-- 1. Bilan estimé du mois (Individuel) -->
+    <!-- 1. Bilan estimé du mois -->
     <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
       <div class="flex items-center justify-between gap-2">
         <button type="button" onclick="toggleSection('contenuBilanMois', 'flecheBilanMois')" class="flex items-center space-x-2 text-left focus:outline-none flex-1">
@@ -241,7 +239,7 @@
       </div>
     </div>
 
-    <!-- 2. Synthèse mensuelle archivée (Individuelle) -->
+    <!-- 2. Synthèse mensuelle archivée -->
     <div class="bg-slate-50 rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
       <div class="flex items-center justify-between gap-2">
         <button type="button" onclick="toggleSection('contenuSyntheseArchive', 'flecheSyntheseArchive')" class="flex items-center space-x-2 text-left focus:outline-none flex-1">
@@ -279,7 +277,7 @@
       </div>
     </div>
 
-    <!-- 3. Déclaration fiscale DGFiP (Individuelle & Foyer Total) -->
+    <!-- 3. Déclaration fiscale DGFiP -->
     <div class="bg-amber-50/60 rounded-2xl border border-amber-200 p-4 shadow-sm space-y-3">
       <div class="flex items-center justify-between gap-2">
         <button type="button" onclick="toggleSection('contenuFiscal', 'flecheFiscal')" class="flex items-center space-x-2 text-left focus:outline-none flex-1">
@@ -315,17 +313,16 @@
           </div>
         </div>
 
-        <!-- Récapitulatif fratrie globale pour le foyer -->
+        <!-- Récapitulatif fratrie globale -->
         <div class="p-3 bg-amber-100/70 rounded-xl border border-amber-300 shadow-xs space-y-2">
           <div class="flex justify-between items-center">
             <span class="text-xs font-black text-amber-950 uppercase tracking-wide">Total Déductible Foyer</span>
             <span id="fiscalTotalFoyer" class="text-lg font-black text-emerald-800">0,00 €</span>
           </div>
           <div id="detailFratrieFiscale" class="space-y-1 text-[11px] text-amber-900 pt-1 border-t border-amber-200">
-            <!-- Liste détaillée de chaque enfant générée dynamiquement -->
           </div>
           <div class="text-[10px] text-amber-800 pt-1 leading-tight italic">
-            * Plafond DGFiP : 3 500 € par enfant (soit jusqu'à 1 750 € d'avantage fiscal par enfant).
+            * Plafond DGFiP : 3 500 € par enfant (jusqu'à 1 750 € d'avantage fiscal par enfant).
           </div>
         </div>
 
@@ -365,7 +362,6 @@
       "QF supérieur à 1500":          { garderie: 19.63, cantine: 3.36, centreJour: 8.50, centreDemi: 4.25 }
     };
 
-    // --- Gestion Multi-Enfants / Fratrie ---
     let listeEnfants = JSON.parse(localStorage.getItem('perisco_enfants') || '["Issam"]');
     let enfantActif = localStorage.getItem('perisco_enfant_actif') || listeEnfants[0] || "Issam";
 
@@ -457,7 +453,6 @@
       }
     }
 
-    // --- Sauvegarde & Restauration Locale (JSON) ---
     function exporterBackupJSON() {
       const exportObj = {
         dateExport: new Date().toISOString(),
@@ -513,7 +508,6 @@
       reader.readAsText(file);
     }
 
-    // --- Configuration Sheets & UI ---
     function getScriptUrl() {
       return localStorage.getItem('user_script_url') || "";
     }
@@ -757,7 +751,6 @@
 
     document.getElementById('periodeInput').addEventListener('change', gererAffichageSelonPeriode);
 
-    // Synchronisation depuis Google Sheets (Tri par enfant)
     async function synchroniserDepuisSheets() {
       const url = getScriptUrl();
       if (!url) return showToast('Mode local actif (Sheets non branché)');
@@ -814,7 +807,7 @@
       if (dateExiste) {
         const dateFr = formaterDateFr(date);
         const confirmation = window.confirm(
-          `⚠️ Une saisie existe déjà pour ${enfantActif} le ${dateFr}.\n\nSouhaitez-vous vraiment la modifier ?`[cite: 2]
+          `⚠️ Une saisie existe déjà pour ${enfantActif} le ${dateFr}.\n\nSouhaitez-vous vraiment la modifier ?`
         );
         if (!confirmation) {
           showToast('Modification annulée');
@@ -1094,7 +1087,7 @@
       XLSX.writeFile(wb, `Periscolaire_Fratrie_${document.getElementById('filtreMois').value}.xlsx`);
     }
 
-    // Démarrage
+    // Initialisation
     const now = new Date();
     const y = now.getFullYear();
     const m = String(now.getMonth() + 1).padStart(2, '0');
