@@ -122,16 +122,18 @@
           </div>
         </div>
 
-        <!-- Cantine scolaire -->
-        <label class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border cursor-pointer active:bg-slate-100">
-          <span class="text-sm font-semibold text-slate-700">Repas cantine scolaire</span>
-          <input type="checkbox" id="cantineInput" class="w-5 h-5 accent-blue-600 rounded">
-        </label>
+        <!-- Cantine scolaire (masquée mercredi et vacances) -->
+        <div id="blocCantineScolaire">
+          <label class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border cursor-pointer active:bg-slate-100">
+            <span class="text-sm font-semibold text-slate-700">Repas cantine scolaire</span>
+            <input type="checkbox" id="cantineInput" class="w-5 h-5 accent-blue-600 rounded">
+          </label>
+        </div>
 
-        <!-- Garderie Matin -->
-        <div class="p-3 bg-slate-50 rounded-xl border space-y-2">
+        <!-- Garderie Matin (7h30 - 8h20) -->
+        <div id="blocGarderieMatin" class="p-3 bg-slate-50 rounded-xl border space-y-2">
           <div class="flex justify-between items-center">
-            <span class="text-xs font-bold text-slate-600 uppercase">Garderie Matin</span>
+            <span class="text-xs font-bold text-slate-600 uppercase">Garderie Matin (7h30 - 8h20)</span>
             <span id="labelDureeMatin" class="text-xs font-medium text-blue-600"></span>
           </div>
           <div class="grid grid-cols-2 gap-2">
@@ -140,38 +142,36 @@
                 <span>Arrivée</span>
                 <button type="button" onclick="setHeureActuelle('matinArrivee')" class="text-blue-600 font-bold hover:underline">Mnt</button>
               </div>
-              <input type="time" id="matinArrivee" onchange="majDureesDirect()" class="w-full bg-white border rounded-lg p-2 text-sm">
+              <input type="time" id="matinArrivee" min="07:30" max="08:20" onchange="majDureesDirect()" class="w-full bg-white border rounded-lg p-2 text-sm">
             </div>
             <div>
               <div class="flex justify-between text-[11px] text-slate-500 mb-0.5">
-                <span>Départ</span>
-                <button type="button" onclick="setHeureActuelle('matinDepart')" class="text-blue-600 font-bold hover:underline">Mnt</button>
+                <span>École débute</span>
               </div>
-              <input type="time" id="matinDepart" onchange="majDureesDirect()" class="w-full bg-white border rounded-lg p-2 text-sm">
+              <input type="time" id="matinDepart" value="08:20" readonly class="w-full bg-slate-100 border text-slate-500 rounded-lg p-2 text-sm cursor-not-allowed">
             </div>
           </div>
         </div>
 
-        <!-- Garderie Soir -->
-        <div class="p-3 bg-slate-50 rounded-xl border space-y-2">
+        <!-- Garderie Soir (16h30 - 18h20) -->
+        <div id="blocGarderieSoir" class="p-3 bg-slate-50 rounded-xl border space-y-2">
           <div class="flex justify-between items-center">
-            <span class="text-xs font-bold text-slate-600 uppercase">Garderie Soir</span>
+            <span class="text-xs font-bold text-slate-600 uppercase">Garderie Soir (16h30 - 18h20)</span>
             <span id="labelDureeSoir" class="text-xs font-medium text-blue-600"></span>
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
               <div class="flex justify-between text-[11px] text-slate-500 mb-0.5">
-                <span>Arrivée</span>
-                <button type="button" onclick="setHeureActuelle('soirArrivee')" class="text-blue-600 font-bold hover:underline">Mnt</button>
+                <span>École termine</span>
               </div>
-              <input type="time" id="soirArrivee" onchange="majDureesDirect()" class="w-full bg-white border rounded-lg p-2 text-sm">
+              <input type="time" id="soirArrivee" value="16:30" readonly class="w-full bg-slate-100 border text-slate-500 rounded-lg p-2 text-sm cursor-not-allowed">
             </div>
             <div>
               <div class="flex justify-between text-[11px] text-slate-500 mb-0.5">
-                <span>Départ</span>
+                <span>Départ parent</span>
                 <button type="button" onclick="setHeureActuelle('soirDepart')" class="text-blue-600 font-bold hover:underline">Mnt</button>
               </div>
-              <input type="time" id="soirDepart" onchange="majDureesDirect()" class="w-full bg-white border rounded-lg p-2 text-sm">
+              <input type="time" id="soirDepart" min="16:30" max="18:20" onchange="majDureesDirect()" class="w-full bg-white border rounded-lg p-2 text-sm">
             </div>
           </div>
         </div>
@@ -486,7 +486,7 @@
       const reader = new FileReader();
       reader.onload = function(evt) {
         try {
-          const imported = JSON.parse(evt.target.result);
+          const imported = JSON.parse(evt.result || evt.target.result);
           if (imported.enfants && imported.data) {
             listeEnfants = imported.enfants;
             localStorage.setItem('perisco_enfants', JSON.stringify(listeEnfants));
@@ -560,6 +560,41 @@
       showToast('Déconnecté de Google Sheets');
     }
 
+    function gererAffichageSelonPeriode() {
+      const periode = document.getElementById('periodeInput').value;
+      const blocMatin = document.getElementById('blocGarderieMatin');
+      const blocSoir = document.getElementById('blocGarderieSoir');
+      const blocCantine = document.getElementById('blocCantineScolaire');
+      const cantineCheckbox = document.getElementById('cantineInput');
+
+      if (periode === 'Mercredi' || periode === 'Vacances') {
+        if (blocMatin) blocMatin.classList.add('hidden');
+        if (blocSoir) blocSoir.classList.add('hidden');
+        if (blocCantine) blocCantine.classList.add('hidden');
+
+        if (cantineCheckbox) cantineCheckbox.checked = false;
+
+        document.getElementById('matinArrivee').value = '';
+        document.getElementById('matinDepart').value = '';
+        document.getElementById('soirArrivee').value = '';
+        document.getElementById('soirDepart').value = '';
+
+        document.getElementById('labelDureeMatin').innerText = '';
+        document.getElementById('labelDureeSoir').innerText = '';
+      } else {
+        if (blocMatin) blocMatin.classList.remove('hidden');
+        if (blocSoir) blocSoir.classList.remove('hidden');
+        if (blocCantine) blocCantine.classList.remove('hidden');
+
+        if (!document.getElementById('matinDepart').value) {
+          document.getElementById('matinDepart').value = '08:20';
+        }
+        if (!document.getElementById('soirArrivee').value) {
+          document.getElementById('soirArrivee').value = '16:30';
+        }
+      }
+    }
+
     function gererAffichageRepasCentre() {
       const presence = document.getElementById('centrePresence').value;
       const repasCheckbox = document.getElementById('centreRepasInput');
@@ -601,6 +636,13 @@
       const dateInput = document.getElementById('dateInput');
       dateInput.value = localDate;
       majDateDisplay(now);
+
+      if (now.getDay() === 3) {
+        document.getElementById('periodeInput').value = 'Mercredi';
+      } else {
+        document.getElementById('periodeInput').value = 'Scolaire';
+      }
+
       chargerJourneeExistante(localDate);
     }
 
@@ -633,17 +675,17 @@
 
     function majDureesDirect() {
       const mArr = document.getElementById('matinArrivee').value;
-      const mDep = document.getElementById('matinDepart').value;
-      const sArr = document.getElementById('soirArrivee').value;
+      const mDep = document.getElementById('matinDepart').value || '08:20';
+      const sArr = document.getElementById('soirArrivee').value || '16:30';
       const sDep = document.getElementById('soirDepart').value;
 
-      const durM = getDureeMinutes(mArr, mDep);
-      const durS = getDureeMinutes(sArr, sDep);
+      const durM = mArr ? getDureeMinutes(mArr, mDep) : 0;
+      const durS = sDep ? getDureeMinutes(sArr, sDep) : 0;
 
-      document.getElementById('labelDureeMatin').innerText = (mArr && mDep) 
-        ? `${Math.floor(durM/60)}h${String(durM%60).padStart(2,'0')}` : '';
-      document.getElementById('labelDureeSoir').innerText = (sArr && sDep) 
-        ? `${Math.floor(durS/60)}h${String(durS%60).padStart(2,'0')}` : '';
+      document.getElementById('labelDureeMatin').innerText = (mArr && durM > 0)
+        ? `${Math.floor(durM / 60)}h${String(durM % 60).padStart(2, '0')}` : '';
+      document.getElementById('labelDureeSoir').innerText = (sDep && durS > 0)
+        ? `${Math.floor(durS / 60)}h${String(durS % 60).padStart(2, '0')}` : '';
     }
 
     function showToast(msg, isError = false) {
@@ -664,8 +706,8 @@
         document.getElementById('periodeInput').value = item.periode || 'Scolaire';
         document.getElementById('cantineInput').checked = !!item.cantine;
         document.getElementById('matinArrivee').value = item.matinArr || '';
-        document.getElementById('matinDepart').value = item.matinDep || '';
-        document.getElementById('soirArrivee').value = item.soirArr || '';
+        document.getElementById('matinDepart').value = item.matinDep || '08:20';
+        document.getElementById('soirArrivee').value = item.soirArr || '16:30';
         document.getElementById('soirDepart').value = item.soirDep || '';
         document.getElementById('centrePresence').value = item.centrePresence || 'Aucun';
         document.getElementById('centreRepasInput').checked = !!item.centreRepas;
@@ -676,8 +718,8 @@
       } else {
         document.getElementById('cantineInput').checked = false;
         document.getElementById('matinArrivee').value = '';
-        document.getElementById('matinDepart').value = '';
-        document.getElementById('soirArrivee').value = '';
+        document.getElementById('matinDepart').value = '08:20';
+        document.getElementById('soirArrivee').value = '16:30';
         document.getElementById('soirDepart').value = '';
         document.getElementById('centrePresence').value = 'Aucun';
         document.getElementById('centreRepasInput').checked = false;
@@ -687,6 +729,7 @@
         btn.className = "w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm shadow transition";
       }
       majDureesDirect();
+      gererAffichageSelonPeriode();
     }
 
     function selectionnerJourHistorique(dateStr) {
@@ -701,8 +744,18 @@
     }
 
     document.getElementById('dateInput').addEventListener('change', (e) => {
-      chargerJourneeExistante(e.target.value);
+      const dateVal = e.target.value;
+      if (dateVal) {
+        const parts = dateVal.split('-');
+        const d = new Date(parts[0], parts[1] - 1, parts[2]);
+        if (d.getDay() === 3 && document.getElementById('periodeInput').value === 'Scolaire') {
+          document.getElementById('periodeInput').value = 'Mercredi';
+        }
+      }
+      chargerJourneeExistante(dateVal);
     });
+
+    document.getElementById('periodeInput').addEventListener('change', gererAffichageSelonPeriode);
 
     // Synchronisation depuis Google Sheets (Tri par enfant)
     async function synchroniserDepuisSheets() {
@@ -756,20 +809,12 @@
       const date = document.getElementById('dateInput').value;
       if (!date) return showToast('Sélectionnez une date', true);
 
-      const mArr = document.getElementById('matinArrivee').value;
-      const mDep = document.getElementById('matinDepart').value;
-      const sArr = document.getElementById('soirArrivee').value;
-      const sDep = document.getElementById('soirDepart').value;
-
-      if ((mArr && !mDep) || (!mArr && mDep)) return showToast('Garderie matin incomplète', true);
-      if ((sArr && !sDep) || (!sArr && sDep)) return showToast('Garderie soir incomplète', true);
-
       let records = getRecords();
       const dateExiste = records.some(r => r.date === date);
       if (dateExiste) {
         const dateFr = formaterDateFr(date);
         const confirmation = window.confirm(
-          `⚠️ Une saisie existe déjà pour ${enfantActif} le ${dateFr}.\n\nSouhaitez-vous vraiment la modifier ?`
+          `⚠️ Une saisie existe déjà pour ${enfantActif} le ${dateFr}.\n\nSouhaitez-vous vraiment la modifier ?`[cite: 2]
         );
         if (!confirmation) {
           showToast('Modification annulée');
@@ -777,8 +822,17 @@
         }
       }
 
-      const durM = getDureeMinutes(mArr, mDep);
-      const durS = getDureeMinutes(sArr, sDep);
+      const mArr = document.getElementById('matinArrivee').value.trim();
+      const sDep = document.getElementById('soirDepart').value.trim();
+
+      const matinArrFinal = mArr || '';
+      const matinDepFinal = mArr ? (document.getElementById('matinDepart').value || '08:20') : '';
+      const durM = mArr ? getDureeMinutes(matinArrFinal, matinDepFinal) : 0;
+
+      const soirArrFinal = sDep ? (document.getElementById('soirArrivee').value || '16:30') : '';
+      const soirDepFinal = sDep || '';
+      const durS = sDep ? getDureeMinutes(soirArrFinal, soirDepFinal) : 0;
+
       const qfChoisi = document.getElementById('selectQF').value;
       const centrePres = document.getElementById('centrePresence').value;
 
@@ -788,11 +842,11 @@
         qfSelectionne: qfChoisi,
         periode: document.getElementById('periodeInput').value,
         cantine: document.getElementById('cantineInput').checked,
-        matinArr: mArr || '',
-        matinDep: mDep || '',
+        matinArr: matinArrFinal,
+        matinDep: matinDepFinal,
         dureeMatin: durM,
-        soirArr: sArr || '',
-        soirDep: sDep || '',
+        soirArr: soirArrFinal,
+        soirDep: soirDepFinal,
         dureeSoir: durS,
         centrePresence: centrePres,
         centreRepas: (centrePres === "Journée entière") ? true : document.getElementById('centreRepasInput').checked,
@@ -904,7 +958,6 @@
       });
     }
 
-    // Calcul fiscal : Individuel et Cumul Foyer
     function actualiserAffichageFiscal() {
       const select = document.getElementById('selectAnneeFiscale');
       if (!select || !select.value) return;
@@ -934,7 +987,6 @@
 
         const codeCase = idx === 0 ? '7GA' : (idx === 1 ? '7GB' : '7GC');
 
-        // Si c'est l'enfant actif à l'écran, on remplit le volet individuel
         if (enf === enfantActif) {
           document.getElementById('fiscalMontantEligible').innerText = eligibleEnf.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
           document.getElementById('fiscalCantineExclue').innerText = cantineEnf.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
@@ -957,7 +1009,6 @@
       const tarifs = BAREMES_PASSAGE[qf] || BAREMES_PASSAGE["QF compris entre 916 et 1215"];
       const selectedMonth = document.getElementById('filtreMois').value;
 
-      // 1. Mois en cours de l'enfant actif
       const bilanActuel = calculerBilanMois(selectedMonth, tarifs, enfantActif);
 
       document.getElementById('statRepas').innerText = `${bilanActuel.totRepas} (${bilanActuel.coutCantine.toFixed(2)}€)`;
@@ -965,7 +1016,6 @@
       document.getElementById('statCentre').innerText = `${bilanActuel.totJoursCentre} j (${bilanActuel.coutCentre.toFixed(2)}€)`;
       document.getElementById('statCout').innerText = bilanActuel.coutTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
-      // 2. Mois archivé
       const [annee, mois] = selectedMonth.split('-').map(Number);
       const datePrec = new Date(annee, mois - 2, 1);
       const cleMoisPrec = `${datePrec.getFullYear()}-${String(datePrec.getMonth() + 1).padStart(2, '0')}`;
@@ -977,10 +1027,8 @@
       }
       actualiserSyntheseArchive();
 
-      // 3. Volet fiscal complet
       actualiserAffichageFiscal();
 
-      // 4. Liste détaillée de l'enfant actif
       const container = document.getElementById('historiqueList');
       const compteurElem = document.getElementById('compteurLignesDetails');
 
@@ -1017,7 +1065,6 @@
       return `${d}/${m}/${y}`;
     }
 
-    // Export Excel complet de tous les enfants de la fratrie
     function exporterExcel() {
       const allRows = [];
       listeEnfants.forEach(enf => {
