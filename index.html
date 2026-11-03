@@ -751,70 +751,85 @@
 
     document.getElementById('periodeInput').addEventListener('change', gererAffichageSelonPeriode);
 
-    async function synchroniserDepuisSheets() {
-      const url = getScriptUrl();
-      if (!url) return showToast('Mode local actif (Sheets non branché)');
+// Fonction de normalisation universelle des dates (DD/MM/YYYY ou ISO -> YYYY-MM-DD)
+function normaliserDateEnISO(dStr) {
+  if (!dStr) return "";
+  const s = String(dStr).trim();
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) {
+    const parts = s.split('/');
+    return `${parts[2].slice(0, 4)}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+  }
+  if (/^\d{4}-\d{1,2}-\d{1,2}/.test(s)) {
+    const parts = s.slice(0, 10).split('-');
+    return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+  }
+  return s.slice(0, 10);
+}
 
-      showToast('Synchronisation Sheets en cours...');
-      try {
-        const res = await fetch(url);
-        const json = await res.json();
-        const lignes = Array.isArray(json) ? json : (json.data || []);
+async function synchroniserDepuisSheets() {
+  const url = getScriptUrl();
+  if (!url) return showToast('Mode local actif (Sheets non branché)');
 
-        if (lignes && lignes.length > 0) {
-          const parEnfant = {};
-          listeEnfants.forEach(enf => parEnfant[enf] = []);
+  showToast('Synchronisation Sheets en cours...');
+  try {
+    const res = await fetch(url);
+    const json = await res.json();
+    const lignes = Array.isArray(json) ? json : (json.data || []);
 
-          lignes.forEach(r => {
-            const nom = (r.enfant || "Issam").trim();
-            if (!parEnfant[nom]) {
-              parEnfant[nom] = [];
-              if (!listeEnfants.includes(nom)) listeEnfants.push(nom);
-            }
+    if (lignes && lignes.length > 0) {
+      const parEnfant = {};
+      listeEnfants.forEach(enf => parEnfant[enf] = []);
 
-            const datePropre = r.date ? String(r.date).slice(0, 10) : "";
-
-            parEnfant[nom].push({
-              enfant: nom,
-              date: datePropre,
-              jour: r.jour || "",
-              periode: r.periode || "Scolaire",
-              cantine: r.cantine === true || String(r.cantine).toLowerCase() === "oui",
-              matinArr: r.matinArr || "",
-              matinDep: r.matinDep || "",
-              dureeMatin: (typeof r.dureeMatin === 'number') ? r.dureeMatin : getDureeMinutes(r.matinArr, r.matinDep),
-              soirArr: r.soirArr || "",
-              soirDep: r.soirDep || "",
-              dureeSoir: (typeof r.dureeSoir === 'number') ? r.dureeSoir : getDureeMinutes(r.soirArr, r.soirDep),
-              centrePresence: r.centrePresence || "Aucun",
-              centreRepas: r.centreRepas === true || String(r.centreRepas).toLowerCase() === "oui",
-              notes: r.notes || ""
-            });
-          });
-
-          localStorage.setItem('perisco_enfants', JSON.stringify(listeEnfants));
-          Object.keys(parEnfant).forEach(nom => {
-            parEnfant[nom].sort((a, b) => new Date(b.date) - new Date(a.date));
-            setRecords(parEnfant[nom], nom);
-          });
-
-          if (json.qfActif) {
-            document.getElementById('selectQF').value = json.qfActif;
-            localStorage.setItem('perisco_qf', json.qfActif);
-          }
-
-          initialiserSelectEnfant();
-          initSelectAnneesFiscales();
-          actualiserAffichage();
-          showToast(`Synchronisé avec succès (${lignes.length} jours chargés) !`);
-        } else {
-          showToast('Aucune donnée retournée par Sheets', true);
+      lignes.forEach(r => {
+        const nom = (r.enfant || "Issam").trim();
+        if (!parEnfant[nom]) {
+          parEnfant[nom] = [];
+          if (!listeEnfants.includes(nom)) listeEnfants.push(nom);
         }
-      } catch (err) {
-        console.error("Erreur synchro :", err);
-        showToast('Erreur traitement des données Sheets', true);
+
+        const datePropre = normaliserDateEnISO(r.date);
+
+        parEnfant[nom].push({
+          enfant: nom,
+          date: datePropre,
+          jour: r.jour || "",
+          periode: r.periode || "Scolaire",
+          cantine: r.cantine === true || String(r.cantine).toLowerCase() === "oui",
+          matinArr: r.matinArr || "",
+          matinDep: r.matinDep || "",
+          dureeMatin: (typeof r.dureeMatin === 'number') ? r.dureeMatin : getDureeMinutes(r.matinArr, r.matinDep),
+          soirArr: r.soirArr || "",
+          soirDep: r.soirDep || "",
+          dureeSoir: (typeof r.dureeSoir === 'number') ? r.dureeSoir : getDureeMinutes(r.soirArr, r.soirDep),
+          centrePresence: r.centrePresence || "Aucun",
+          centreRepas: r.centreRepas === true || String(r.centreRepas).toLowerCase() === "oui",
+          notes: r.notes || ""
+        });
+      });
+
+      localStorage.setItem('perisco_enfants', JSON.stringify(listeEnfants));
+      Object.keys(parEnfant).forEach(nom => {
+        parEnfant[nom].sort((a, b) => new Date(b.date) - new Date(a.date));
+        setRecords(parEnfant[nom], nom);
+      });
+
+      if (json.qfActif) {
+        document.getElementById('selectQF').value = json.qfActif;
+        localStorage.setItem('perisco_qf', json.qfActif);
       }
+
+      initialiserSelectEnfant();
+      initSelectAnneesFiscales();
+      actualiserAffichage();
+      showToast(`Synchronisé avec succès (${lignes.length} jours chargés) !`);
+    } else {
+      showToast('Aucune donnée retournée par Sheets', true);
     }
+  } catch (err) {
+    console.error("Erreur synchro :", err);
+    showToast('Erreur traitement des données Sheets', true);
+  }
+}
 
     document.getElementById('periscoForm').addEventListener('submit', async (e) => {
       e.preventDefault();
