@@ -37,14 +37,14 @@
 
       <!-- Connexion Sheets optionnelle -->
       <div class="space-y-2 border-t pt-3">
-        <label class="block text-[11px] font-bold text-slate-500 uppercase">Google Sheets (Optionnel)</label>
+        <label class="block text-[11px] font-bold text-slate-500 uppercase">Google Sheets (Connecté d'office)</label>
         <input type="url" id="inputUrlScript" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-50 border rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500">
         <div class="flex items-center space-x-2 pt-1">
           <button type="button" onclick="sauvegarderConfig()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-xl text-xs transition">
             Enregistrer l'URL
           </button>
-          <button type="button" onclick="supprimerConfig()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold py-2 px-3 rounded-xl text-xs border border-rose-200 transition">
-            Retirer
+          <button type="button" onclick="reinitialiserUrlDefaut()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-3 rounded-xl text-xs border border-slate-300 transition">
+            Par défaut
           </button>
         </div>
       </div>
@@ -100,7 +100,7 @@
     <!-- Formulaire de saisie -->
     <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
       <h2 class="font-bold text-slate-800 mb-3 text-sm flex items-center justify-between border-b pb-2">
-        <span>Saisie du jour (<span id="labelNomEnfantActif" class="text-blue-600"></span>)</span>
+        <span>Saisie du jour (<span id="labelNomEnfantActif" class="text-blue-600 font-bold">Issam</span>)</span>
         <button type="button" onclick="initAujourdhui()" class="text-xs text-blue-600 font-medium hover:underline">Aujourd'hui</button>
       </h2>
 
@@ -205,15 +205,18 @@
     <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
       <div class="flex items-center justify-between gap-2">
         <button type="button" onclick="toggleSection('contenuBilanMois', 'flecheBilanMois')" class="flex items-center space-x-2 text-left focus:outline-none flex-1">
-          <span class="font-bold text-slate-800 text-sm">📊 Bilan estimé (<span id="labelBilanEnfant" class="text-blue-600"></span>)</span>
+          <span class="font-bold text-slate-800 text-sm">📊 Bilan estimé (<span id="labelBilanEnfant" class="text-blue-600 font-bold">Issam</span>)</span>
           <span id="flecheBilanMois" class="text-slate-400 text-xs transition-transform duration-200 transform rotate-180">▼</span>
         </button>
         
-        <div class="flex items-center bg-slate-50 border border-slate-300 rounded-xl px-2 py-1 shadow-sm focus-within:ring-2 focus-within:ring-blue-500">
-          <input type="month" id="filtreMois" onchange="actualiserAffichage()" class="bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer">
-          <button type="button" onclick="ouvrirCalendrier('filtreMois')" title="Choisir le mois" class="text-sm ml-1 text-slate-600 hover:text-blue-600 active:scale-95 transition">
-            📅
-          </button>
+        <div class="flex items-center bg-slate-50 border border-slate-300 rounded-xl px-1.5 py-1 shadow-sm">
+          <button type="button" onclick="changerMoisRelatif(-1)" class="px-1 text-slate-500 hover:text-blue-600 font-bold text-xs">◀</button>
+          <select id="filtreMois" onchange="actualiserAffichage()" class="bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer px-1">
+            <option value="2026-11">Novembre 2026</option>
+            <option value="2026-10">Octobre 2026</option>
+            <option value="2026-09">Septembre 2026</option>
+          </select>
+          <button type="button" onclick="changerMoisRelatif(1)" class="px-1 text-slate-500 hover:text-blue-600 font-bold text-xs">▶</button>
         </div>
       </div>
       
@@ -243,15 +246,17 @@
     <div class="bg-slate-50 rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
       <div class="flex items-center justify-between gap-2">
         <button type="button" onclick="toggleSection('contenuSyntheseArchive', 'flecheSyntheseArchive')" class="flex items-center space-x-2 text-left focus:outline-none flex-1">
-          <span class="font-bold text-slate-700 text-xs sm:text-sm">📁 Mois archivé (<span id="labelArchiveEnfant"></span>)</span>
+          <span class="font-bold text-slate-700 text-xs sm:text-sm">📁 Mois archivé (<span id="labelArchiveEnfant" class="text-slate-700 font-bold">Issam</span>)</span>
           <span id="flecheSyntheseArchive" class="text-slate-400 text-xs transition-transform duration-200">▼</span>
         </button>
 
-        <div class="flex items-center bg-white border border-slate-300 rounded-xl px-2 py-1 shadow-sm focus-within:ring-2 focus-within:ring-blue-500">
-          <input type="month" id="filtreMoisArchive" onchange="actualiserSyntheseArchive()" class="bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer">
-          <button type="button" onclick="ouvrirCalendrier('filtreMoisArchive')" title="Choisir le mois archivé" class="text-sm ml-1 text-slate-600 hover:text-blue-600 active:scale-95 transition">
-            📅
-          </button>
+        <div class="flex items-center bg-white border border-slate-300 rounded-xl px-1.5 py-1 shadow-sm">
+          <button type="button" onclick="changerMoisArchiveRelatif(-1)" class="px-1 text-slate-500 hover:text-blue-600 font-bold text-xs">◀</button>
+          <select id="filtreMoisArchive" onchange="actualiserSyntheseArchive()" class="bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer px-1">
+            <option value="2026-10">Octobre 2026</option>
+            <option value="2026-09">Septembre 2026</option>
+          </select>
+          <button type="button" onclick="changerMoisArchiveRelatif(1)" class="px-1 text-slate-500 hover:text-blue-600 font-bold text-xs">▶</button>
         </div>
       </div>
       
@@ -287,6 +292,7 @@
 
         <div class="flex items-center bg-white border border-amber-300 rounded-xl px-2 py-1 shadow-sm">
           <select id="selectAnneeFiscale" onchange="actualiserAffichageFiscal()" class="bg-transparent text-xs font-bold text-amber-900 outline-none cursor-pointer">
+            <option value="2026">2026</option>
           </select>
         </div>
       </div>
@@ -301,7 +307,7 @@
           <div class="flex justify-between items-center">
             <div>
               <div class="text-xs font-bold text-slate-800">
-                <span id="nomEnfantFiscal"></span> : <span id="labelCaseFiscale" class="text-blue-600 font-extrabold">Case 7GA</span>
+                <span id="nomEnfantFiscal">Issam</span> : <span id="labelCaseFiscale" class="text-blue-600 font-extrabold">Case 7GA</span>
               </div>
               <div class="text-[10px] text-slate-500">Garderie + Centre Rosette (repas centre inclus)</div>
             </div>
@@ -337,7 +343,7 @@
       <button type="button" onclick="toggleSection('contenuDetails', 'flecheDetails')" class="w-full flex items-center justify-between text-left focus:outline-none">
         <span class="flex items-center space-x-2 font-bold text-slate-800 text-xs sm:text-sm">
           <span>📋</span>
-          <span>Détail des journées (<span id="labelDetailsEnfant"></span>)</span>
+          <span>Détail des journées (<span id="labelDetailsEnfant" class="text-slate-800 font-bold">Issam</span>)</span>
           <span id="compteurLignesDetails" class="text-[11px] font-normal text-slate-400"></span>
         </span>
         <span id="flecheDetails" class="text-slate-400 text-xs transition-transform duration-200">▼</span>
@@ -352,6 +358,9 @@
   </main>
 
   <script>
+    // URL connectée en dur par défaut
+    const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6mlcRtCjG0tR8dsmO1IpHlan4F-gz1P3NYx3u5jWJ9-TUrPLDwyGsU9JhoxoJgKHUaQ/exec";
+
     const BAREMES_PASSAGE = {
       "QF inférieur à 300":           { garderie: 7.11,  cantine: 1.00, centreJour: 2.35, centreDemi: 1.20 },
       "QF compris entre 300 et 480":  { garderie: 8.47,  cantine: 1.00, centreJour: 2.45, centreDemi: 1.25 },
@@ -362,25 +371,51 @@
       "QF supérieur à 1500":          { garderie: 19.63, cantine: 3.36, centreJour: 8.50, centreDemi: 4.25 }
     };
 
-    let listeEnfants = JSON.parse(localStorage.getItem('perisco_enfants') || '["Issam"]');
-    let enfantActif = localStorage.getItem('perisco_enfant_actif') || listeEnfants[0] || "Issam";
-
-    function getStorageKey(nomEnfant) {
-      return `perisco_data_${nomEnfant || enfantActif}`;
-    }
-
-    function getRecords(nomEnfant) {
-      const targetEnfant = nomEnfant || enfantActif;
-      const key = getStorageKey(targetEnfant);
-      const ancien = localStorage.getItem('perisco_data');
-      if (ancien && !localStorage.getItem(key) && targetEnfant === "Issam") {
-        localStorage.setItem(key, ancien);
+    // Gestion robuste du profil : garantit qu'Issam est actif sans chaîne vide
+    let listeEnfants = ["Issam"];
+    try {
+      const stored = JSON.parse(localStorage.getItem('perisco_enfants') || '[]');
+      if (Array.isArray(stored) && stored.length > 0) {
+        listeEnfants = stored.filter(n => n && n.trim() !== "");
       }
-      return JSON.parse(localStorage.getItem(key) || '[]');
+    } catch(e) {}
+    if (!listeEnfants.includes("Issam")) listeEnfants.unshift("Issam");
+
+    let enfantActif = localStorage.getItem('perisco_enfant_actif');
+    if (!enfantActif || !listeEnfants.includes(enfantActif)) {
+      enfantActif = "Issam";
+      localStorage.setItem('perisco_enfant_actif', "Issam");
     }
 
-    function setRecords(data, nomEnfant) {
-      localStorage.setItem(getStorageKey(nomEnfant || enfantActif), JSON.stringify(data));
+    function getStorageKey(nom) {
+      const n = (nom || enfantActif || "Issam").trim();
+      return `perisco_data_${n}`;
+    }
+
+    function getRecords(nom) {
+      const target = (nom || enfantActif || "Issam").trim();
+      const key = getStorageKey(target);
+      let records = [];
+      try {
+        records = JSON.parse(localStorage.getItem(key) || '[]');
+      } catch(e) { records = []; }
+
+      // Récupération de secours si clé vide
+      if (records.length === 0 && target === "Issam") {
+        try {
+          const ancien = JSON.parse(localStorage.getItem('perisco_data') || '[]');
+          if (ancien.length > 0) {
+            records = ancien;
+            localStorage.setItem(key, JSON.stringify(records));
+          }
+        } catch(e) {}
+      }
+      return records;
+    }
+
+    function setRecords(data, nom) {
+      const target = (nom || enfantActif || "Issam").trim();
+      localStorage.setItem(getStorageKey(target), JSON.stringify(data));
     }
 
     function initialiserSelectEnfant() {
@@ -397,119 +432,45 @@
     }
 
     function majLabelsEnfant() {
-      document.getElementById('labelNomEnfantActif').innerText = enfantActif;
-      document.getElementById('labelBilanEnfant').innerText = enfantActif;
-      document.getElementById('labelArchiveEnfant').innerText = enfantActif;
-      document.getElementById('labelDetailsEnfant').innerText = enfantActif;
-      document.getElementById('nomEnfantFiscal').innerText = enfantActif;
+      const nom = enfantActif || "Issam";
+      document.getElementById('labelNomEnfantActif').innerText = nom;
+      document.getElementById('labelBilanEnfant').innerText = nom;
+      document.getElementById('labelArchiveEnfant').innerText = nom;
+      document.getElementById('labelDetailsEnfant').innerText = nom;
+      document.getElementById('nomEnfantFiscal').innerText = nom;
 
-      const idx = listeEnfants.indexOf(enfantActif);
+      const idx = Math.max(0, listeEnfants.indexOf(nom));
       const codeCase = idx === 0 ? '7GA' : (idx === 1 ? '7GB' : '7GC');
       document.getElementById('labelCaseFiscale').innerText = `Case ${codeCase}`;
     }
 
     function changerEnfantActif() {
-      enfantActif = document.getElementById('selectEnfant').value;
+      const val = document.getElementById('selectEnfant').value;
+      enfantActif = val || "Issam";
       localStorage.setItem('perisco_enfant_actif', enfantActif);
       majLabelsEnfant();
       initAujourdhui();
-      initSelectAnneesFiscales();
       actualiserAffichage();
       showToast(`Profil actif : ${enfantActif}`);
     }
 
     function ajouterOuRenommerEnfant() {
-      const choix = prompt(
-        `Gestion de la fratrie :\n\n- Entrez un NOUVEAU prénom pour l'ajouter\n- Ou tapez "renommer:NouveauNom" pour renommer "${enfantActif}"`, 
-        ""
-      );
-      if (!choix) return;
-
-      const saisie = choix.trim();
-      if (saisie.toLowerCase().startsWith("renommer:")) {
-        const nouveauNom = saisie.split(":")[1]?.trim();
-        if (nouveauNom && !listeEnfants.includes(nouveauNom)) {
-          const index = listeEnfants.indexOf(enfantActif);
-          const oldData = getRecords();
-          localStorage.removeItem(getStorageKey());
-          listeEnfants[index] = nouveauNom;
-          enfantActif = nouveauNom;
-          localStorage.setItem('perisco_enfants', JSON.stringify(listeEnfants));
-          localStorage.setItem('perisco_enfant_actif', enfantActif);
-          setRecords(oldData);
-          initialiserSelectEnfant();
-          actualiserAffichage();
-          showToast(`Profil renommé en ${nouveauNom}`);
-        }
-      } else if (saisie && !listeEnfants.includes(saisie)) {
-        listeEnfants.push(saisie);
-        enfantActif = saisie;
+      const saisie = prompt(`Entrez un prénom d'enfant à ajouter (ex : Hakim) :`, "");
+      if (!saisie || !saisie.trim()) return;
+      const nom = saisie.trim();
+      if (!listeEnfants.includes(nom)) {
+        listeEnfants.push(nom);
+        enfantActif = nom;
         localStorage.setItem('perisco_enfants', JSON.stringify(listeEnfants));
         localStorage.setItem('perisco_enfant_actif', enfantActif);
         initialiserSelectEnfant();
-        initAujourdhui();
         actualiserAffichage();
-        showToast(`Enfant ajouté : ${saisie}`);
+        showToast(`Ajouté : ${nom}`);
       }
     }
 
-    function exporterBackupJSON() {
-      const exportObj = {
-        dateExport: new Date().toISOString(),
-        enfants: listeEnfants,
-        qf: getQFActuel(),
-        data: {}
-      };
-      listeEnfants.forEach(enf => {
-        exportObj.data[enf] = getRecords(enf);
-      });
-
-      const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Backup_Periscolaire_Fratrie_${new Date().toISOString().slice(0, 10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast('Sauvegarde fratrie exportée');
-    }
-
-    function importerBackupJSON(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        try {
-          const imported = JSON.parse(evt.result || evt.target.result);
-          if (imported.enfants && imported.data) {
-            listeEnfants = imported.enfants;
-            localStorage.setItem('perisco_enfants', JSON.stringify(listeEnfants));
-            if (imported.qf) localStorage.setItem('perisco_qf', imported.qf);
-
-            Object.keys(imported.data).forEach(enf => {
-              setRecords(imported.data[enf], enf);
-            });
-
-            enfantActif = listeEnfants[0];
-            localStorage.setItem('perisco_enfant_actif', enfantActif);
-            initialiserSelectEnfant();
-            initAujourdhui();
-            actualiserAffichage();
-            fermerModalConfig();
-            showToast('Données fratrie restaurées !');
-          } else {
-            showToast('Fichier de sauvegarde invalide', true);
-          }
-        } catch (err) {
-          showToast('Erreur lecture du fichier JSON', true);
-        }
-      };
-      reader.readAsText(file);
-    }
-
     function getScriptUrl() {
-      return localStorage.getItem('user_script_url') || "";
+      return localStorage.getItem('user_script_url') || DEFAULT_SCRIPT_URL;
     }
 
     function getQFActuel() {
@@ -520,7 +481,7 @@
       const qf = document.getElementById('selectQF').value;
       localStorage.setItem('perisco_qf', qf);
       actualiserAffichage();
-      showToast('Barème QF appliqué');
+      showToast('Barème appliqué');
     }
 
     function ouvrirModalConfig() {
@@ -534,76 +495,23 @@
 
     function sauvegarderConfig() {
       const url = document.getElementById('inputUrlScript').value.trim();
-      if (url && !url.startsWith("https://script.google.com/")) {
-        return showToast('URL Google Apps Script invalide', true);
-      }
-      localStorage.setItem('user_script_url', url);
+      localStorage.setItem('user_script_url', url || DEFAULT_SCRIPT_URL);
       fermerModalConfig();
-      if (url) {
-        showToast('Google Sheets connecté');
-        synchroniserDepuisSheets();
-      } else {
-        showToast('Mode local autonome actif');
-      }
+      synchroniserDepuisSheets();
     }
 
-    function supprimerConfig() {
-      localStorage.removeItem('user_script_url');
-      document.getElementById('inputUrlScript').value = "";
+    function reinitialiserUrlDefaut() {
+      localStorage.setItem('user_script_url', DEFAULT_SCRIPT_URL);
+      document.getElementById('inputUrlScript').value = DEFAULT_SCRIPT_URL;
       fermerModalConfig();
-      showToast('Déconnecté de Google Sheets');
-    }
-
-    function gererAffichageSelonPeriode() {
-      const periode = document.getElementById('periodeInput').value;
-      const blocMatin = document.getElementById('blocGarderieMatin');
-      const blocSoir = document.getElementById('blocGarderieSoir');
-      const blocCantine = document.getElementById('blocCantineScolaire');
-      const cantineCheckbox = document.getElementById('cantineInput');
-
-      if (periode === 'Mercredi' || periode === 'Vacances') {
-        if (blocMatin) blocMatin.classList.add('hidden');
-        if (blocSoir) blocSoir.classList.add('hidden');
-        if (blocCantine) blocCantine.classList.add('hidden');
-
-        if (cantineCheckbox) cantineCheckbox.checked = false;
-
-        document.getElementById('matinArrivee').value = '';
-        document.getElementById('matinDepart').value = '';
-        document.getElementById('soirArrivee').value = '';
-        document.getElementById('soirDepart').value = '';
-
-        document.getElementById('labelDureeMatin').innerText = '';
-        document.getElementById('labelDureeSoir').innerText = '';
-      } else {
-        if (blocMatin) blocMatin.classList.remove('hidden');
-        if (blocSoir) blocSoir.classList.remove('hidden');
-        if (blocCantine) blocCantine.classList.remove('hidden');
-
-        if (!document.getElementById('matinDepart').value) {
-          document.getElementById('matinDepart').value = '08:20';
-        }
-        if (!document.getElementById('soirArrivee').value) {
-          document.getElementById('soirArrivee').value = '16:30';
-        }
-      }
-    }
-
-    function gererAffichageRepasCentre() {
-      const presence = document.getElementById('centrePresence').value;
-      const repasCheckbox = document.getElementById('centreRepasInput');
-      if (presence === "Journée entière") {
-        repasCheckbox.checked = true;
-      } else if (presence === "Aucun") {
-        repasCheckbox.checked = false;
-      }
+      synchroniserDepuisSheets();
+      showToast('URL par défaut rétablie');
     }
 
     function toggleSection(idContenu, idFleche) {
       const contenu = document.getElementById(idContenu);
       const fleche = document.getElementById(idFleche);
       const estMasque = contenu.classList.contains('hidden');
-
       if (estMasque) {
         contenu.classList.remove('hidden');
         fleche.style.transform = 'rotate(180deg)';
@@ -613,51 +521,24 @@
       }
     }
 
-    function ouvrirCalendrier(inputId) {
-      const input = document.getElementById(inputId);
-      if (!input) return;
-      if (typeof input.showPicker === 'function') input.showPicker();
-      else { input.focus(); input.click(); }
-    }
-
-    function initAujourdhui() {
-      const now = new Date();
-      const y = now.getFullYear();
-      const m = String(now.getMonth() + 1).padStart(2, '0');
-      const d = String(now.getDate()).padStart(2, '0');
-      const localDate = `${y}-${m}-${d}`;
-
-      const dateInput = document.getElementById('dateInput');
-      dateInput.value = localDate;
-      majDateDisplay(now);
-
-      if (now.getDay() === 3) {
-        document.getElementById('periodeInput').value = 'Mercredi';
-      } else {
-        document.getElementById('periodeInput').value = 'Scolaire';
+    function normaliserDateISO(dStr) {
+      if (!dStr) return "";
+      const s = String(dStr).trim();
+      if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) {
+        const p = s.split('/');
+        return `${p[2].slice(0, 4)}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
       }
-
-      chargerJourneeExistante(localDate);
-    }
-
-    function majDateDisplay(d) {
-      const opts = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-      document.getElementById('currentDateDisplay').innerText = d.toLocaleDateString('fr-FR', opts);
-    }
-
-    function setHeureActuelle(fieldId) {
-      const now = new Date();
-      const hh = String(now.getHours()).padStart(2, '0');
-      const mm = String(now.getMinutes()).padStart(2, '0');
-      document.getElementById(fieldId).value = `${hh}:${mm}`;
-      majDureesDirect();
+      if (/^\d{4}-\d{1,2}-\d{1,2}/.test(s)) {
+        const p = s.slice(0, 10).split('-');
+        return `${p[0]}-${p[1].padStart(2, '0')}-${p[2].padStart(2, '0')}`;
+      }
+      return s.slice(0, 10);
     }
 
     function getDureeMinutes(arr, dep) {
       if (!arr || !dep) return 0;
       const parseHMM = (val) => {
-        const s = String(val).trim();
-        const m = s.match(/(\d{1,2}):(\d{2})/);
+        const m = String(val).trim().match(/(\d{1,2}):(\d{2})/);
         return m ? { h: parseInt(m[1], 10), m: parseInt(m[2], 10) } : null;
       };
       const t1 = parseHMM(arr);
@@ -682,20 +563,51 @@
         ? `${Math.floor(durS / 60)}h${String(durS % 60).padStart(2, '0')}` : '';
     }
 
-    function showToast(msg, isError = false) {
-      const t = document.getElementById('toast');
-      t.innerText = msg;
-      t.className = `fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg text-xs font-semibold shadow-lg text-white transition duration-300 opacity-100 ${isError ? 'bg-red-600' : 'bg-emerald-600'}`;
-      setTimeout(() => {
-        t.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 opacity-0 pointer-events-none px-4 py-2 rounded-lg text-xs font-semibold shadow-lg text-white';
-      }, 2500);
+    function gererAffichageSelonPeriode() {
+      const periode = document.getElementById('periodeInput').value;
+      const blocMatin = document.getElementById('blocGarderieMatin');
+      const blocSoir = document.getElementById('blocGarderieSoir');
+      const blocCantine = document.getElementById('blocCantineScolaire');
+      if (periode === 'Mercredi' || periode === 'Vacances') {
+        blocMatin.classList.add('hidden');
+        blocSoir.classList.add('hidden');
+        blocCantine.classList.add('hidden');
+        document.getElementById('cantineInput').checked = false;
+      } else {
+        blocMatin.classList.remove('hidden');
+        blocSoir.classList.remove('hidden');
+        blocCantine.classList.remove('hidden');
+      }
+    }
+
+    function gererAffichageRepasCentre() {
+      const pres = document.getElementById('centrePresence').value;
+      if (pres === "Journée entière") {
+        document.getElementById('centreRepasInput').checked = true;
+      } else if (pres === "Aucun") {
+        document.getElementById('centreRepasInput').checked = false;
+      }
+    }
+
+    function setHeureActuelle(id) {
+      const now = new Date();
+      document.getElementById(id).value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      majDureesDirect();
+    }
+
+    function initAujourdhui() {
+      const now = new Date();
+      const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      document.getElementById('dateInput').value = localDate;
+      const opts = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+      document.getElementById('currentDateDisplay').innerText = now.toLocaleDateString('fr-FR', opts);
+      document.getElementById('periodeInput').value = now.getDay() === 3 ? 'Mercredi' : 'Scolaire';
+      chargerJourneeExistante(localDate);
     }
 
     function chargerJourneeExistante(dateStr) {
       const records = getRecords();
       const item = records.find(r => r.date === dateStr);
-      const btn = document.getElementById('btnSubmit');
-
       if (item) {
         document.getElementById('periodeInput').value = item.periode || 'Scolaire';
         document.getElementById('cantineInput').checked = !!item.cantine;
@@ -706,9 +618,6 @@
         document.getElementById('centrePresence').value = item.centrePresence || 'Aucun';
         document.getElementById('centreRepasInput').checked = !!item.centreRepas;
         document.getElementById('notesInput').value = item.notes || '';
-
-        btn.innerText = `Modifier la journée (${enfantActif})`;
-        btn.className = "w-full bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white font-bold py-3 rounded-xl text-sm shadow transition";
       } else {
         document.getElementById('cantineInput').checked = false;
         document.getElementById('matinArrivee').value = '';
@@ -718,44 +627,25 @@
         document.getElementById('centrePresence').value = 'Aucun';
         document.getElementById('centreRepasInput').checked = false;
         document.getElementById('notesInput').value = '';
-
-        btn.innerText = `Enregistrer la journée (${enfantActif})`;
-        btn.className = "w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm shadow transition";
       }
       majDureesDirect();
       gererAffichageSelonPeriode();
     }
 
     function selectionnerJourHistorique(dateStr) {
-      const dateInput = document.getElementById('dateInput');
-      dateInput.value = dateStr;
-      const parts = dateStr.split('-');
-      const d = new Date(parts[0], parts[1] - 1, parts[2]);
-      majDateDisplay(d);
+      document.getElementById('dateInput').value = dateStr;
       chargerJourneeExistante(dateStr);
       document.getElementById('periscoForm').scrollIntoView({ behavior: 'smooth' });
-      showToast('Journée chargée pour modification');
+      showToast('Journée chargée');
     }
 
-    document.getElementById('dateInput').addEventListener('change', (e) => {
-      const dateVal = e.target.value;
-      if (dateVal) {
-        const parts = dateVal.split('-');
-        const d = new Date(parts[0], parts[1] - 1, parts[2]);
-        if (d.getDay() === 3 && document.getElementById('periodeInput').value === 'Scolaire') {
-          document.getElementById('periodeInput').value = 'Mercredi';
-        }
-      }
-      chargerJourneeExistante(dateVal);
-    });
-
+    document.getElementById('dateInput').addEventListener('change', (e) => chargerJourneeExistante(e.target.value));
     document.getElementById('periodeInput').addEventListener('change', gererAffichageSelonPeriode);
 
+    // Synchronisation Sheets renforcée et tolérante
     async function synchroniserDepuisSheets() {
       const url = getScriptUrl();
-      if (!url) return showToast('Mode local actif (Sheets non branché)');
-
-      showToast('Synchronisation Sheets en cours...');
+      showToast('Synchronisation Sheets...');
       try {
         const res = await fetch(url);
         const json = await res.json();
@@ -763,16 +653,18 @@
 
         if (lignes && lignes.length > 0) {
           const parEnfant = {};
-          listeEnfants.forEach(enf => parEnfant[enf] = []);
+          listeEnfants.forEach(n => parEnfant[n] = []);
 
           lignes.forEach(r => {
-            const nom = (r.enfant || "Issam").trim();
+            let nom = (r.enfant || "Issam").toString().trim();
+            if (!nom) nom = "Issam";
+
             if (!parEnfant[nom]) {
               parEnfant[nom] = [];
               if (!listeEnfants.includes(nom)) listeEnfants.push(nom);
             }
 
-            const datePropre = r.date ? String(r.date).slice(0, 10) : "";
+            const datePropre = normaliserDateISO(r.date);
 
             parEnfant[nom].push({
               enfant: nom,
@@ -805,77 +697,54 @@
 
           initialiserSelectEnfant();
           initSelectAnneesFiscales();
+          remplirSelectMois();
           actualiserAffichage();
-          showToast(`Synchronisé avec succès (${lignes.length} jours chargés) !`);
-        } else {
-          showToast('Aucune donnée retournée par Sheets', true);
+          showToast(`Synchronisé (${lignes.length} jours chargés) !`);
         }
       } catch (err) {
-        console.error("Erreur synchro :", err);
-        showToast('Erreur traitement des données Sheets', true);
+        console.error(err);
+        showToast('Erreur synchro Sheets', true);
       }
     }
 
+    // Soumission du formulaire
     document.getElementById('periscoForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-
       const date = document.getElementById('dateInput').value;
-      if (!date) return showToast('Sélectionnez une date', true);
-
-      let records = getRecords();
-      const dateExiste = records.some(r => r.date === date);
-      if (dateExiste) {
-        const dateFr = formaterDateFr(date);
-        const confirmation = window.confirm(
-          `⚠️ Une saisie existe déjà pour ${enfantActif} le ${dateFr}.\n\nSouhaitez-vous vraiment la modifier ?`
-        );
-        if (!confirmation) {
-          showToast('Modification annulée');
-          return;
-        }
-      }
+      if (!date) return;
 
       const mArr = document.getElementById('matinArrivee').value.trim();
       const sDep = document.getElementById('soirDepart').value.trim();
 
-      const matinArrFinal = mArr || '';
-      const matinDepFinal = mArr ? (document.getElementById('matinDepart').value || '08:20') : '';
-      const durM = mArr ? getDureeMinutes(matinArrFinal, matinDepFinal) : 0;
-
-      const soirArrFinal = sDep ? (document.getElementById('soirArrivee').value || '16:30') : '';
-      const soirDepFinal = sDep || '';
-      const durS = sDep ? getDureeMinutes(soirArrFinal, soirDepFinal) : 0;
-
-      const qfChoisi = document.getElementById('selectQF').value;
-      const centrePres = document.getElementById('centrePresence').value;
-
       const payload = {
-        enfant: enfantActif,
+        enfant: enfantActif || "Issam",
         date: date,
-        qfSelectionne: qfChoisi,
+        qfSelectionne: document.getElementById('selectQF').value,
         periode: document.getElementById('periodeInput').value,
         cantine: document.getElementById('cantineInput').checked,
-        matinArr: matinArrFinal,
-        matinDep: matinDepFinal,
-        dureeMatin: durM,
-        soirArr: soirArrFinal,
-        soirDep: soirDepFinal,
-        dureeSoir: durS,
-        centrePresence: centrePres,
-        centreRepas: (centrePres === "Journée entière") ? true : document.getElementById('centreRepasInput').checked,
+        matinArr: mArr,
+        matinDep: mArr ? (document.getElementById('matinDepart').value || '08:20') : '',
+        dureeMatin: mArr ? getDureeMinutes(mArr, document.getElementById('matinDepart').value || '08:20') : 0,
+        soirArr: sDep ? (document.getElementById('soirArrivee').value || '16:30') : '',
+        soirDep: sDep,
+        dureeSoir: sDep ? getDureeMinutes(document.getElementById('soirArrivee').value || '16:30', sDep) : 0,
+        centrePresence: document.getElementById('centrePresence').value,
+        centreRepas: (document.getElementById('centrePresence').value === "Journée entière") ? true : document.getElementById('centreRepasInput').checked,
         notes: document.getElementById('notesInput').value.trim()
       };
 
+      const records = getRecords();
       const idx = records.findIndex(r => r.date === date);
       if (idx >= 0) records[idx] = payload;
       else records.push(payload);
       records.sort((a, b) => new Date(b.date) - new Date(a.date));
       setRecords(records);
+      remplirSelectMois();
       actualiserAffichage();
 
       const scriptUrl = getScriptUrl();
       if (scriptUrl) {
-        showToast('Enregistrement en cours...');
+        showToast('Enregistrement Sheets...');
         try {
           await fetch(scriptUrl, {
             method: 'POST',
@@ -885,13 +754,12 @@
           });
           showToast('Enregistré (Local & Sheets) !');
         } catch (err) {
-          showToast('Enregistré en local (échec Sheets)', true);
+          showToast('Enregistré en local');
         }
-      } else {
-        showToast(`Journée enregistrée pour ${enfantActif} !`);
       }
     });
 
+    // Calcul du bilan d'un mois
     function calculerBilanMois(cleMois, tarifs, nomEnfant) {
       let totRepas = 0;
       let joursGarderie = 0;
@@ -902,20 +770,20 @@
       const items = getRecords(nomEnfant).filter(r => r.date && r.date.startsWith(cleMois));
 
       items.forEach(r => {
-        if (r.cantine) { 
-          totRepas++; 
-          coutCantine += tarifs.cantine; 
+        if (r.cantine) {
+          totRepas++;
+          coutCantine += tarifs.cantine;
         }
 
         const min = (r.dureeMatin || 0) + (r.dureeSoir || 0);
         if (min > 0) joursGarderie++;
 
-        if (r.centrePresence === 'Journée entière') { 
-          totJoursCentre += 1; 
-          coutCentre += tarifs.centreJour; 
-        } else if (r.centrePresence && r.centrePresence.includes('Demi-journée')) { 
-          totJoursCentre += 0.5; 
-          coutCentre += tarifs.centreDemi; 
+        if (r.centrePresence === 'Journée entière') {
+          totJoursCentre += 1;
+          coutCentre += tarifs.centreJour;
+        } else if (r.centrePresence && r.centrePresence.includes('Demi-journée')) {
+          totJoursCentre += 0.5;
+          coutCentre += tarifs.centreDemi;
         }
       });
 
@@ -925,28 +793,89 @@
       else if (joursGarderie > 5) coutGarderie = tarifs.garderie;
 
       const coutTotal = coutCantine + coutGarderie + coutCentre;
-
       return { totRepas, coutCantine, joursGarderie, coutGarderie, totJoursCentre, coutCentre, coutTotal, items };
     }
 
+    const NOMS_MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+
+    function formaterMoisLabel(cleMois) {
+      if (!cleMois || !cleMois.includes('-')) return cleMois;
+      const [y, m] = cleMois.split('-').map(Number);
+      return `${NOMS_MOIS[m - 1]} ${y}`;
+    }
+
+    function remplirSelectMois() {
+      const selectActuel = document.getElementById('filtreMois');
+      const selectArchive = document.getElementById('filtreMoisArchive');
+      const moisDispos = new Set();
+
+      const now = new Date();
+      const moisActuelStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      moisDispos.add(moisActuelStr);
+
+      listeEnfants.forEach(enf => {
+        getRecords(enf).forEach(r => {
+          if (r.date && r.date.length >= 7) {
+            moisDispos.add(r.date.slice(0, 7));
+          }
+        });
+      });
+
+      const listeTrie = Array.from(moisDispos).sort().reverse();
+      const valActuel = selectActuel.value || moisActuelStr;
+      const valArchive = selectArchive.value || listeTrie[1] || moisActuelStr;
+
+      selectActuel.innerHTML = '';
+      selectArchive.innerHTML = '';
+
+      listeTrie.forEach(mStr => {
+        const opt1 = document.createElement('option');
+        opt1.value = mStr;
+        opt1.innerText = formaterMoisLabel(mStr);
+        if (mStr === valActuel) opt1.selected = true;
+        selectActuel.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = mStr;
+        opt2.innerText = formaterMoisLabel(mStr);
+        if (mStr === valArchive) opt2.selected = true;
+        selectArchive.appendChild(opt2);
+      });
+    }
+
+    function changerMoisRelatif(delta) {
+      const select = document.getElementById('filtreMois');
+      const idx = select.selectedIndex - delta;
+      if (idx >= 0 && idx < select.options.length) {
+        select.selectedIndex = idx;
+        actualiserAffichage();
+      }
+    }
+
+    function changerMoisArchiveRelatif(delta) {
+      const select = document.getElementById('filtreMoisArchive');
+      const idx = select.selectedIndex - delta;
+      if (idx >= 0 && idx < select.options.length) {
+        select.selectedIndex = idx;
+        actualiserSyntheseArchive();
+      }
+    }
+
     function actualiserSyntheseArchive() {
-      const qf = getQFActuel();
-      const tarifs = BAREMES_PASSAGE[qf] || BAREMES_PASSAGE["QF compris entre 916 et 1215"];
+      const tarifs = BAREMES_PASSAGE[getQFActuel()] || BAREMES_PASSAGE["QF compris entre 916 et 1215"];
       const moisArchive = document.getElementById('filtreMoisArchive').value;
       if (!moisArchive) return;
 
-      const bilanArchive = calculerBilanMois(moisArchive, tarifs, enfantActif);
-
-      document.getElementById('prevRepas').innerText = `${bilanArchive.totRepas} (${bilanArchive.coutCantine.toFixed(2)}€)`;
-      document.getElementById('prevGarderie').innerText = `${bilanArchive.joursGarderie} j (${bilanArchive.coutGarderie.toFixed(2)}€)`;
-      document.getElementById('prevCentre').innerText = `${bilanArchive.totJoursCentre} j (${bilanArchive.coutCentre.toFixed(2)}€)`;
-      document.getElementById('prevCout').innerText = bilanArchive.coutTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+      const b = calculerBilanMois(moisArchive, tarifs, enfantActif);
+      document.getElementById('prevRepas').innerText = `${b.totRepas} (${b.coutCantine.toFixed(2)}€)`;
+      document.getElementById('prevGarderie').innerText = `${b.joursGarderie} j (${b.coutGarderie.toFixed(2)}€)`;
+      document.getElementById('prevCentre').innerText = `${b.totJoursCentre} j (${b.coutCentre.toFixed(2)}€)`;
+      document.getElementById('prevCout').innerText = b.coutTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
     }
 
     function initSelectAnneesFiscales() {
       const select = document.getElementById('selectAnneeFiscale');
       if (!select) return;
-
       const now = new Date();
       const anneeCourante = now.getFullYear();
       const annees = new Set([anneeCourante]);
@@ -974,10 +903,8 @@
     function actualiserAffichageFiscal() {
       const select = document.getElementById('selectAnneeFiscale');
       if (!select || !select.value) return;
-
       const anneeCivile = select.value;
-      const qf = getQFActuel();
-      const tarifs = BAREMES_PASSAGE[qf] || BAREMES_PASSAGE["QF compris entre 916 et 1215"];
+      const tarifs = BAREMES_PASSAGE[getQFActuel()] || BAREMES_PASSAGE["QF compris entre 916 et 1215"];
 
       let totalFoyerGlobal = 0;
       let htmlDetailFratrie = '';
@@ -997,10 +924,9 @@
 
         const eligibleEnf = garderieEnf + centreEnf;
         totalFoyerGlobal += eligibleEnf;
-
         const codeCase = idx === 0 ? '7GA' : (idx === 1 ? '7GB' : '7GC');
 
-        if (enf === enfantActif) {
+        if (enf === (enfantActif || "Issam")) {
           document.getElementById('fiscalMontantEligible').innerText = eligibleEnf.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
           document.getElementById('fiscalCantineExclue').innerText = cantineEnf.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
         }
@@ -1018,43 +944,32 @@
     }
 
     function actualiserAffichage() {
-      const qf = getQFActuel();
-      const tarifs = BAREMES_PASSAGE[qf] || BAREMES_PASSAGE["QF compris entre 916 et 1215"];
-      const selectedMonth = document.getElementById('filtreMois').value;
+      const tarifs = BAREMES_PASSAGE[getQFActuel()] || BAREMES_PASSAGE["QF compris entre 916 et 1215"];
+      const moisSelectionne = document.getElementById('filtreMois').value || "2026-10";
 
-      const bilanActuel = calculerBilanMois(selectedMonth, tarifs, enfantActif);
+      const b = calculerBilanMois(moisSelectionne, tarifs, enfantActif || "Issam");
 
-      document.getElementById('statRepas').innerText = `${bilanActuel.totRepas} (${bilanActuel.coutCantine.toFixed(2)}€)`;
-      document.getElementById('statGarderie').innerText = `${bilanActuel.joursGarderie} j (${bilanActuel.coutGarderie.toFixed(2)}€)`;
-      document.getElementById('statCentre').innerText = `${bilanActuel.totJoursCentre} j (${bilanActuel.coutCentre.toFixed(2)}€)`;
-      document.getElementById('statCout').innerText = bilanActuel.coutTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+      document.getElementById('statRepas').innerText = `${b.totRepas} (${b.coutCantine.toFixed(2)}€)`;
+      document.getElementById('statGarderie').innerText = `${b.joursGarderie} j (${b.coutGarderie.toFixed(2)}€)`;
+      document.getElementById('statCentre').innerText = `${b.totJoursCentre} j (${b.coutCentre.toFixed(2)}€)`;
+      document.getElementById('statCout').innerText = b.coutTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
-      const [annee, mois] = selectedMonth.split('-').map(Number);
-      const datePrec = new Date(annee, mois - 2, 1);
-      const cleMoisPrec = `${datePrec.getFullYear()}-${String(datePrec.getMonth() + 1).padStart(2, '0')}`;
-      
-      const inputArchive = document.getElementById('filtreMoisArchive');
-      inputArchive.max = cleMoisPrec;
-      if (!inputArchive.value || inputArchive.value >= selectedMonth) {
-        inputArchive.value = cleMoisPrec;
-      }
       actualiserSyntheseArchive();
-
       actualiserAffichageFiscal();
 
+      // Détail des journées
       const container = document.getElementById('historiqueList');
-      const compteurElem = document.getElementById('compteurLignesDetails');
+      const compteur = document.getElementById('compteurLignesDetails');
 
-      if (bilanActuel.items.length === 0) {
-        if (compteurElem) compteurElem.innerText = '(0)';
-        container.innerHTML = `<div class="py-4 text-center text-slate-400">Aucune donnée pour ${enfantActif} ce mois-ci.</div>`;
+      if (b.items.length === 0) {
+        if (compteur) compteur.innerText = '(0)';
+        container.innerHTML = `<div class="py-4 text-center text-slate-400">Aucune donnée pour ce mois.</div>`;
         return;
       }
 
-      if (compteurElem) compteurElem.innerText = `(${bilanActuel.items.length})`;
-
-      container.innerHTML = bilanActuel.items.map(r => `
-        <div onclick="selectionnerJourHistorique('${r.date}')" class="p-2 rounded-xl flex justify-between items-center cursor-pointer hover:bg-blue-50 active:bg-blue-100 transition border border-transparent hover:border-blue-200">
+      if (compteur) compteur.innerText = `(${b.items.length})`;
+      container.innerHTML = b.items.map(r => `
+        <div onclick="selectionnerJourHistorique('${r.date}')" class="p-2 rounded-xl flex justify-between items-center cursor-pointer hover:bg-blue-50 transition border border-transparent hover:border-blue-200">
           <div>
             <div class="font-bold text-slate-800 flex items-center space-x-1.5">
               <span>${formaterDateFr(r.date)}</span>
@@ -1065,17 +980,25 @@
               ${(r.dureeMatin + r.dureeSoir) > 0 ? `<span class="bg-amber-100 text-amber-900 px-1 rounded">Garderie: ${Math.floor((r.dureeMatin + r.dureeSoir)/60)}h${String((r.dureeMatin + r.dureeSoir)%60).padStart(2,'0')}</span>` : ''}
               ${r.centrePresence && r.centrePresence !== 'Aucun' ? `<span class="bg-purple-100 text-purple-900 px-1 rounded">Centre: ${r.centrePresence}</span>` : ''}
             </div>
-            ${r.notes ? `<div class="text-[10px] text-slate-400 italic mt-0.5">${r.notes}</div>` : ''}
           </div>
           <span class="text-blue-600 font-bold text-xs">✏️</span>
         </div>
       `).join('');
     }
 
-    function formaterDateFr(dateStr) {
-      if (!dateStr || !dateStr.includes('-')) return dateStr;
-      const [y, m, d] = dateStr.split('-');
+    function formaterDateFr(dStr) {
+      if (!dStr || !dStr.includes('-')) return dStr;
+      const [y, m, d] = dStr.split('-');
       return `${d}/${m}/${y}`;
+    }
+
+    function showToast(msg, isError = false) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.className = `fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg text-xs font-semibold shadow-lg text-white transition duration-300 opacity-100 ${isError ? 'bg-red-600' : 'bg-emerald-600'}`;
+      setTimeout(() => {
+        t.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 opacity-0 pointer-events-none px-4 py-2 rounded-lg text-xs font-semibold shadow-lg text-white';
+      }, 2500);
     }
 
     function exporterExcel() {
@@ -1088,39 +1011,26 @@
             "Date": r.date,
             "Période": r.periode,
             "Cantine": r.cantine ? "Oui" : "Non",
-            "Matin Arrivée": r.matinArr || "",
-            "Matin Départ": r.matinDep || "",
-            "Soir Arrivée": r.soirArr || "",
-            "Soir Départ": r.soirDep || "",
-            "Centre Présence": r.centrePresence,
-            "Centre Repas": r.centreRepas ? "Oui" : "Non",
             "Remarques": r.notes || ""
           });
         });
       });
-
-      if (!allRows.length) return showToast('Aucune donnée à exporter', true);
-
+      if (!allRows.length) return showToast('Aucune donnée', true);
       const ws = XLSX.utils.json_to_sheet(allRows);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Journal_Fratrie");
-      XLSX.writeFile(wb, `Periscolaire_Fratrie_${document.getElementById('filtreMois').value}.xlsx`);
+      XLSX.utils.book_append_sheet(wb, ws, "Journal");
+      XLSX.writeFile(wb, `Periscolaire_${document.getElementById('filtreMois').value}.xlsx`);
     }
 
-    // Initialisation
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    document.getElementById('filtreMois').value = `${y}-${m}`;
-    document.getElementById('selectQF').value = getQFActuel();
+    // Démarrage automatique
     initialiserSelectEnfant();
     initAujourdhui();
     initSelectAnneesFiscales();
+    remplirSelectMois();
     actualiserAffichage();
 
-    if (getScriptUrl()) {
-      synchroniserDepuisSheets();
-    }
+    // Connexion et synchronisation immédiate dès l'ouverture
+    synchroniserDepuisSheets();
   </script>
 </body>
 </html>
