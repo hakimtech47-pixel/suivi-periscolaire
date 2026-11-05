@@ -21,7 +21,6 @@
         <button type="button" onclick="fermerModalConfig()" class="text-slate-400 hover:text-slate-700 text-lg leading-none">&times;</button>
       </div>
 
-      <!-- Sauvegarde locale -->
       <div class="space-y-2">
         <label class="block text-[11px] font-bold text-slate-500 uppercase">Sauvegarde du téléphone</label>
         <div class="grid grid-cols-2 gap-2">
@@ -35,16 +34,15 @@
         </div>
       </div>
 
-      <!-- Connexion Sheets optionnelle -->
       <div class="space-y-2 border-t pt-3">
-        <label class="block text-[11px] font-bold text-slate-500 uppercase">Google Sheets (Connecté d'office)</label>
+        <label class="block text-[11px] font-bold text-slate-500 uppercase">Liaison Google Sheets</label>
         <input type="url" id="inputUrlScript" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-50 border rounded-lg p-2 text-xs focus:ring-2 focus:ring-blue-500">
         <div class="flex items-center space-x-2 pt-1">
           <button type="button" onclick="sauvegarderConfig()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-xl text-xs transition">
-            Enregistrer l'URL
+            Enregistrer
           </button>
           <button type="button" onclick="reinitialiserUrlDefaut()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-3 rounded-xl text-xs border border-slate-300 transition">
-            Par défaut
+            Défaut
           </button>
         </div>
       </div>
@@ -76,7 +74,7 @@
       <div class="bg-blue-700/80 p-1.5 rounded-xl flex items-center justify-between">
         <select id="selectEnfant" onchange="changerEnfantActif()" class="bg-white text-slate-800 font-semibold rounded-lg px-2 py-1 text-xs outline-none w-[80%] truncate">
         </select>
-        <button type="button" onclick="ajouterOuRenommerEnfant()" title="Ajouter ou renommer un enfant" class="bg-blue-800 hover:bg-blue-900 active:scale-95 text-white font-black text-xs px-2 py-1 rounded-lg">
+        <button type="button" onclick="ajouterOuRenommerEnfant()" title="Ajouter un profil d'enfant" class="bg-blue-800 hover:bg-blue-900 active:scale-95 text-white font-black text-xs px-2 py-1 rounded-lg">
           +
         </button>
       </div>
@@ -192,7 +190,7 @@
 
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Notes / Remarques</label>
-          <input type="text" id="notesInput" placeholder="Ex : retard, sortie..." class="w-full bg-slate-50 border rounded-lg p-2 text-sm">
+          <input type="text" id="notesInput" placeholder="Ex : sortie, retard..." class="w-full bg-slate-50 border rounded-lg p-2 text-sm">
         </div>
 
         <button type="submit" id="btnSubmit" class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm shadow transition">
@@ -210,13 +208,10 @@
         </button>
         
         <div class="flex items-center bg-slate-50 border border-slate-300 rounded-xl px-1.5 py-1 shadow-sm">
-          <button type="button" onclick="changerMoisRelatif(-1)" class="px-1 text-slate-500 hover:text-blue-600 font-bold text-xs">◀</button>
-          <select id="filtreMois" onchange="actualiserAffichage()" class="bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer px-1">
-            <option value="2026-11">Novembre 2026</option>
-            <option value="2026-10">Octobre 2026</option>
-            <option value="2026-09">Septembre 2026</option>
+          <button type="button" onclick="naviguerMois('filtreMois', -1)" class="px-2 py-0.5 text-slate-600 hover:text-blue-600 font-bold text-sm">◀</button>
+          <select id="filtreMois" onchange="actualiserAffichage()" class="bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer px-1 py-0.5">
           </select>
-          <button type="button" onclick="changerMoisRelatif(1)" class="px-1 text-slate-500 hover:text-blue-600 font-bold text-xs">▶</button>
+          <button type="button" onclick="naviguerMois('filtreMois', 1)" class="px-2 py-0.5 text-slate-600 hover:text-blue-600 font-bold text-sm">▶</button>
         </div>
       </div>
       
@@ -251,12 +246,10 @@
         </button>
 
         <div class="flex items-center bg-white border border-slate-300 rounded-xl px-1.5 py-1 shadow-sm">
-          <button type="button" onclick="changerMoisArchiveRelatif(-1)" class="px-1 text-slate-500 hover:text-blue-600 font-bold text-xs">◀</button>
-          <select id="filtreMoisArchive" onchange="actualiserSyntheseArchive()" class="bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer px-1">
-            <option value="2026-10">Octobre 2026</option>
-            <option value="2026-09">Septembre 2026</option>
+          <button type="button" onclick="naviguerMois('filtreMoisArchive', -1)" class="px-2 py-0.5 text-slate-600 hover:text-blue-600 font-bold text-sm">◀</button>
+          <select id="filtreMoisArchive" onchange="actualiserSyntheseArchive()" class="bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer px-1 py-0.5">
           </select>
-          <button type="button" onclick="changerMoisArchiveRelatif(1)" class="px-1 text-slate-500 hover:text-blue-600 font-bold text-xs">▶</button>
+          <button type="button" onclick="naviguerMois('filtreMoisArchive', 1)" class="px-2 py-0.5 text-slate-600 hover:text-blue-600 font-bold text-sm">▶</button>
         </div>
       </div>
       
@@ -293,6 +286,7 @@
         <div class="flex items-center bg-white border border-amber-300 rounded-xl px-2 py-1 shadow-sm">
           <select id="selectAnneeFiscale" onchange="actualiserAffichageFiscal()" class="bg-transparent text-xs font-bold text-amber-900 outline-none cursor-pointer">
             <option value="2026">2026</option>
+            <option value="2027">2027</option>
           </select>
         </div>
       </div>
@@ -358,7 +352,7 @@
   </main>
 
   <script>
-    // URL connectée en dur par défaut
+    // URL backend déployée par défaut
     const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6mlcRtCjG0tR8dsmO1IpHlan4F-gz1P3NYx3u5jWJ9-TUrPLDwyGsU9JhoxoJgKHUaQ/exec";
 
     const BAREMES_PASSAGE = {
@@ -371,12 +365,13 @@
       "QF supérieur à 1500":          { garderie: 19.63, cantine: 3.36, centreJour: 8.50, centreDemi: 4.25 }
     };
 
-    // Gestion robuste du profil : garantit qu'Issam est actif sans chaîne vide
-    let listeEnfants = ["Issam"];
+    // Gestion robuste des profils
+    let listeEnfants = ["Issam", "Hakim"];
     try {
       const stored = JSON.parse(localStorage.getItem('perisco_enfants') || '[]');
       if (Array.isArray(stored) && stored.length > 0) {
-        listeEnfants = stored.filter(n => n && n.trim() !== "");
+        const clean = stored.filter(n => n && typeof n === 'string' && n.trim() !== "");
+        if (clean.length > 0) listeEnfants = clean;
       }
     } catch(e) {}
     if (!listeEnfants.includes("Issam")) listeEnfants.unshift("Issam");
@@ -400,7 +395,7 @@
         records = JSON.parse(localStorage.getItem(key) || '[]');
       } catch(e) { records = []; }
 
-      // Récupération de secours si clé vide
+      // Récupération de l'ancienne clé perisco_data si disponible
       if (records.length === 0 && target === "Issam") {
         try {
           const ancien = JSON.parse(localStorage.getItem('perisco_data') || '[]');
@@ -451,11 +446,11 @@
       majLabelsEnfant();
       initAujourdhui();
       actualiserAffichage();
-      showToast(`Profil actif : ${enfantActif}`);
+      showToast(`Profil : ${enfantActif}`);
     }
 
     function ajouterOuRenommerEnfant() {
-      const saisie = prompt(`Entrez un prénom d'enfant à ajouter (ex : Hakim) :`, "");
+      const saisie = prompt(`Entrez un prénom d'enfant (ex : Issam, Hakim) :`, "");
       if (!saisie || !saisie.trim()) return;
       const nom = saisie.trim();
       if (!listeEnfants.includes(nom)) {
@@ -521,6 +516,7 @@
       }
     }
 
+    // Normalisation universelle de dates
     function normaliserDateISO(dStr) {
       if (!dStr) return "";
       const s = String(dStr).trim();
@@ -636,16 +632,79 @@
       document.getElementById('dateInput').value = dateStr;
       chargerJourneeExistante(dateStr);
       document.getElementById('periscoForm').scrollIntoView({ behavior: 'smooth' });
-      showToast('Journée chargée');
+      showToast('Journée chargée pour modification');
     }
 
     document.getElementById('dateInput').addEventListener('change', (e) => chargerJourneeExistante(e.target.value));
     document.getElementById('periodeInput').addEventListener('change', gererAffichageSelonPeriode);
 
-    // Synchronisation Sheets renforcée et tolérante
+    // ==========================================
+    // GESTION DU CALENDRIER SCOLAIRE COMPLET
+    // ==========================================
+    const NOMS_MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+
+    function initialiserCalendrierComplet() {
+      const selectActuel = document.getElementById('filtreMois');
+      const selectArchive = document.getElementById('filtreMoisArchive');
+
+      // Année scolaire complète 2026-2027 par défaut
+      const moisList = [
+        "2027-07", "2027-06", "2027-05", "2027-04", "2027-03", "2027-02", "2027-01",
+        "2026-12", "2026-11", "2026-10", "2026-09"
+      ];
+
+      // Ajouter tout mois présent dans les données
+      listeEnfants.forEach(enf => {
+        getRecords(enf).forEach(r => {
+          if (r.date && r.date.length >= 7) {
+            const m = r.date.slice(0, 7);
+            if (!moisList.includes(m)) moisList.push(m);
+          }
+        });
+      });
+
+      moisList.sort().reverse();
+
+      const valActuelAvant = selectActuel.value || "2026-10";
+      const valArchiveAvant = selectArchive.value || "2026-09";
+
+      selectActuel.innerHTML = '';
+      selectArchive.innerHTML = '';
+
+      moisList.forEach(mStr => {
+        const [y, m] = mStr.split('-').map(Number);
+        const label = `${NOMS_MOIS[m - 1]} ${y}`;
+
+        const opt1 = document.createElement('option');
+        opt1.value = mStr;
+        opt1.innerText = label;
+        if (mStr === valActuelAvant) opt1.selected = true;
+        selectActuel.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = mStr;
+        opt2.innerText = label;
+        if (mStr === valArchiveAvant) opt2.selected = true;
+        selectArchive.appendChild(opt2);
+      });
+    }
+
+    function naviguerMois(selectId, delta) {
+      const select = document.getElementById(selectId);
+      const newIdx = select.selectedIndex - delta;
+      if (newIdx >= 0 && newIdx < select.options.length) {
+        select.selectedIndex = newIdx;
+        if (selectId === 'filtreMois') actualiserAffichage();
+        else actualiserSyntheseArchive();
+      }
+    }
+
+    // ==========================================
+    // SYNCHRONISATION SHEETS
+    // ==========================================
     async function synchroniserDepuisSheets() {
       const url = getScriptUrl();
-      showToast('Synchronisation Sheets...');
+      showToast('Synchronisation Google Sheets...');
       try {
         const res = await fetch(url);
         const json = await res.json();
@@ -696,14 +755,13 @@
           }
 
           initialiserSelectEnfant();
-          initSelectAnneesFiscales();
-          remplirSelectMois();
+          initialiserCalendrierComplet();
           actualiserAffichage();
           showToast(`Synchronisé (${lignes.length} jours chargés) !`);
         }
       } catch (err) {
-        console.error(err);
-        showToast('Erreur synchro Sheets', true);
+        console.error("Erreur synchro :", err);
+        showToast('Erreur connexion Sheets', true);
       }
     }
 
@@ -739,7 +797,6 @@
       else records.push(payload);
       records.sort((a, b) => new Date(b.date) - new Date(a.date));
       setRecords(records);
-      remplirSelectMois();
       actualiserAffichage();
 
       const scriptUrl = getScriptUrl();
@@ -796,71 +853,6 @@
       return { totRepas, coutCantine, joursGarderie, coutGarderie, totJoursCentre, coutCentre, coutTotal, items };
     }
 
-    const NOMS_MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
-
-    function formaterMoisLabel(cleMois) {
-      if (!cleMois || !cleMois.includes('-')) return cleMois;
-      const [y, m] = cleMois.split('-').map(Number);
-      return `${NOMS_MOIS[m - 1]} ${y}`;
-    }
-
-    function remplirSelectMois() {
-      const selectActuel = document.getElementById('filtreMois');
-      const selectArchive = document.getElementById('filtreMoisArchive');
-      const moisDispos = new Set();
-
-      const now = new Date();
-      const moisActuelStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-      moisDispos.add(moisActuelStr);
-
-      listeEnfants.forEach(enf => {
-        getRecords(enf).forEach(r => {
-          if (r.date && r.date.length >= 7) {
-            moisDispos.add(r.date.slice(0, 7));
-          }
-        });
-      });
-
-      const listeTrie = Array.from(moisDispos).sort().reverse();
-      const valActuel = selectActuel.value || moisActuelStr;
-      const valArchive = selectArchive.value || listeTrie[1] || moisActuelStr;
-
-      selectActuel.innerHTML = '';
-      selectArchive.innerHTML = '';
-
-      listeTrie.forEach(mStr => {
-        const opt1 = document.createElement('option');
-        opt1.value = mStr;
-        opt1.innerText = formaterMoisLabel(mStr);
-        if (mStr === valActuel) opt1.selected = true;
-        selectActuel.appendChild(opt1);
-
-        const opt2 = document.createElement('option');
-        opt2.value = mStr;
-        opt2.innerText = formaterMoisLabel(mStr);
-        if (mStr === valArchive) opt2.selected = true;
-        selectArchive.appendChild(opt2);
-      });
-    }
-
-    function changerMoisRelatif(delta) {
-      const select = document.getElementById('filtreMois');
-      const idx = select.selectedIndex - delta;
-      if (idx >= 0 && idx < select.options.length) {
-        select.selectedIndex = idx;
-        actualiserAffichage();
-      }
-    }
-
-    function changerMoisArchiveRelatif(delta) {
-      const select = document.getElementById('filtreMoisArchive');
-      const idx = select.selectedIndex - delta;
-      if (idx >= 0 && idx < select.options.length) {
-        select.selectedIndex = idx;
-        actualiserSyntheseArchive();
-      }
-    }
-
     function actualiserSyntheseArchive() {
       const tarifs = BAREMES_PASSAGE[getQFActuel()] || BAREMES_PASSAGE["QF compris entre 916 et 1215"];
       const moisArchive = document.getElementById('filtreMoisArchive').value;
@@ -873,37 +865,8 @@
       document.getElementById('prevCout').innerText = b.coutTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
     }
 
-    function initSelectAnneesFiscales() {
-      const select = document.getElementById('selectAnneeFiscale');
-      if (!select) return;
-      const now = new Date();
-      const anneeCourante = now.getFullYear();
-      const annees = new Set([anneeCourante]);
-
-      listeEnfants.forEach(enf => {
-        getRecords(enf).forEach(r => {
-          if (r.date && r.date.length >= 4) {
-            const y = parseInt(r.date.slice(0, 4), 10);
-            if (!isNaN(y)) annees.add(y);
-          }
-        });
-      });
-
-      const anneesTriees = Array.from(annees).sort((a, b) => b - a);
-      select.innerHTML = '';
-      anneesTriees.forEach(y => {
-        const opt = document.createElement('option');
-        opt.value = y;
-        opt.innerText = y;
-        if (y === anneeCourante) opt.selected = true;
-        select.appendChild(opt);
-      });
-    }
-
     function actualiserAffichageFiscal() {
-      const select = document.getElementById('selectAnneeFiscale');
-      if (!select || !select.value) return;
-      const anneeCivile = select.value;
+      const anneeCivile = document.getElementById('selectAnneeFiscale').value || "2026";
       const tarifs = BAREMES_PASSAGE[getQFActuel()] || BAREMES_PASSAGE["QF compris entre 916 et 1215"];
 
       let totalFoyerGlobal = 0;
@@ -1004,8 +967,7 @@
     function exporterExcel() {
       const allRows = [];
       listeEnfants.forEach(enf => {
-        const records = getRecords(enf);
-        records.forEach(r => {
+        getRecords(enf).forEach(r => {
           allRows.push({
             "Enfant": enf,
             "Date": r.date,
@@ -1022,14 +984,52 @@
       XLSX.writeFile(wb, `Periscolaire_${document.getElementById('filtreMois').value}.xlsx`);
     }
 
+    function exporterBackupJSON() {
+      const exportObj = {
+        dateExport: new Date().toISOString(),
+        enfants: listeEnfants,
+        qf: getQFActuel(),
+        data: {}
+      };
+      listeEnfants.forEach(enf => exportObj.data[enf] = getRecords(enf));
+      const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `Backup_Periscolaire_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+    }
+
+    function importerBackupJSON(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const imp = JSON.parse(evt.target.result);
+          if (imp.data) {
+            listeEnfants = imp.enfants || ["Issam"];
+            localStorage.setItem('perisco_enfants', JSON.stringify(listeEnfants));
+            Object.keys(imp.data).forEach(enf => setRecords(imp.data[enf], enf));
+            enfantActif = listeEnfants[0];
+            localStorage.setItem('perisco_enfant_actif', enfantActif);
+            initialiserSelectEnfant();
+            initialiserCalendrierComplet();
+            actualiserAffichage();
+            fermerModalConfig();
+            showToast('Données restaurées !');
+          }
+        } catch(err) { showToast('Fichier invalide', true); }
+      };
+      reader.readAsText(file);
+    }
+
     // Démarrage automatique
     initialiserSelectEnfant();
     initAujourdhui();
-    initSelectAnneesFiscales();
-    remplirSelectMois();
+    initialiserCalendrierComplet();
     actualiserAffichage();
 
-    // Connexion et synchronisation immédiate dès l'ouverture
+    // Connexion Sheets automatique
     synchroniserDepuisSheets();
   </script>
 </body>
