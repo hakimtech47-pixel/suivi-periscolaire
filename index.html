@@ -520,14 +520,28 @@
     function normaliserDateISO(dStr) {
       if (!dStr) return "";
       const s = String(dStr).trim();
-      if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) {
-        const p = s.split('/');
-        return `${p[2].slice(0, 4)}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
-      }
+      
+      // 1. Déjà ISO AAAA-MM-JJ
       if (/^\d{4}-\d{1,2}-\d{1,2}/.test(s)) {
         const p = s.slice(0, 10).split('-');
         return `${p[0]}-${p[1].padStart(2, '0')}-${p[2].padStart(2, '0')}`;
       }
+      
+      // 2. Format FR JJ/MM/AAAA
+      if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) {
+        const p = s.split('/');
+        return `${p[2].slice(0, 4)}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+      }
+
+      // 3. Date brute anglaise envoyée par Google Apps Script (ex: 'Wed Sep 02 2026 ...')
+      const parsed = new Date(s);
+      if (!isNaN(parsed.getTime())) {
+        const y = parsed.getFullYear();
+        const m = String(parsed.getMonth() + 1).padStart(2, '0');
+        const d = String(parsed.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+
       return s.slice(0, 10);
     }
 
@@ -653,11 +667,12 @@
         "2026-12", "2026-11", "2026-10", "2026-09"
       ];
 
-      // Ajouter tout mois présent dans les données
+      // Ajouter tout mois valide présent dans les données (format strict YYYY-MM)
       listeEnfants.forEach(enf => {
         getRecords(enf).forEach(r => {
-          if (r.date && r.date.length >= 7) {
-            const m = r.date.slice(0, 7);
+          const dateClean = normaliserDateISO(r.date);
+          if (dateClean && /^\d{4}-\d{2}/.test(dateClean)) {
+            const m = dateClean.slice(0, 7);
             if (!moisList.includes(m)) moisList.push(m);
           }
         });
